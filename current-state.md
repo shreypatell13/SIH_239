@@ -9,7 +9,7 @@
 - **Current sub-phase:** Phase 2 — Step 1 (Project Context & Persistent Agent Memory)
 - **Current task:** Establishing baseline persistent context files and initializing repository
 - **Status:** Step 1 Completed; Ready for Phase 2A approval
-- **Last stable commit:** None (Pending baseline commit)
+- **Last stable commit:** `86a0ec2` ("phase-2: establish persistent project context")
 - **Last completed work:** Inspected repository, initialized Git repository, established the 6 persistent Markdown context files (.cursorrules, PRD.md, architecture.md, design.md, phases.md, current-state.md)
 - **Current working features:** Persistent cross-agent documentation and rule governance system
 - **Current blockers:** None
