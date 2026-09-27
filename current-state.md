@@ -9,7 +9,7 @@
 - **Current sub-phase:** Phase 2C (Authentication & Role-Based Access Control)
 - **Current task:** Authentication and server-authoritative RBAC implementation, verification, and hardening
 - **Status:** Phase 2C COMPLETED & VERIFIED; Ready for Phase 2D
-- **Last stable commit:** `pending-commit` ("phase-2c: implement authentication and server-side RBAC")
+- **Last stable commit:** `8e87c16` ("phase-2c: implement authentication and server-side RBAC")
 - **Last completed work:** 
   - Real authentication implemented via NextAuth.js v4 using Credentials provider and JWT session strategy.
   - User lookup strictly routed through Prisma PostgreSQL `User` records with bcrypt (cost factor 12) password verification.
