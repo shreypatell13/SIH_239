@@ -9,7 +9,7 @@
 - **Current sub-phase:** Phase 2B (Database Schemas & Domain Models)
 - **Current task:** Domain schema authoring, migration, repositories, seed configuration, and unit tests
 - **Status:** Phase 2B COMPLETED & VERIFIED; Ready for Phase 2C
-- **Last stable commit:** pending commit ("phase-2b: implement database schemas and domain models")
+- **Last stable commit:** `cec4e9e` ("phase-2b: implement database schemas and domain models")
 - **Last completed work:** Comprehensive domain model implemented across 13 Prisma models and 13 enums; canonical role rename propagated (`VERIFICATION_OFFICER`, `SCHEME_ADMIN`, `OPERATIONS_DIRECTOR`, and `APPLICANT`); SQL migration generated under `prisma/migrations/20260928000000_phase_2b_domain/migration.sql`; complete repository layer established under `src/server/repositories/`; deterministic seed script authored in `prisma/seed.ts`; 18/18 Vitest unit tests passing across 5 suites; ESLint, Prettier, and TypeScript strict checks 100% clean.
 - **Current working features:**
   - Full case-management relational schema in `prisma/schema.prisma` with 13 models and 13 enums
