@@ -44,27 +44,31 @@
 ---
 
 ### Phase 2A: Engineering Foundation & Monorepo Tooling
-- **Goal:** Set up the core development environment, project directory structure, TypeScript configurations, package managers, linting/formatting standards, and base scripts.
+- **Goal:** Set up the core development environment, project directory structure, TypeScript strict configuration, locked package dependencies, linting/formatting standards, Vitest test runner, and Docker Compose for PostgreSQL.
 - **Major Features:**
-  - Modern full-stack project structure (app router, server actions/API endpoints, shared libs).
-  - TypeScript strict configuration, ESLint, Prettier, Tailwind CSS setup.
-  - Test runner framework (Vitest / Playwright).
+  - Full-stack project structure using Next.js 14+ (App Router), React, and TypeScript Strict Mode.
+  - Tailwind CSS (v3) and shadcn/ui component scaffolding.
+  - ESLint, Prettier (with `prettier-plugin-tailwindcss`), and strict tsconfig.
+  - Vitest configuration with sample unit test execution.
+  - Docker Compose configuration (`docker-compose.yml`) for local PostgreSQL 15.
   - Environment variable validation with `.env.example`.
-- **Dependencies:** Phase 2 Step 1 context established.
+- **Dependencies:** Phase 2 Step 1 context established; Architecture Lock completed.
 - **Acceptance Criteria:**
-  - `npm run dev` (or equivalent) launches frontend/backend cleanly without errors.
-  - `npm run test` executes a baseline test suite.
+  - `npm run dev` launches the Next.js development server cleanly without errors.
+  - `npm run test` executes a baseline test suite in Vitest.
   - Zero TypeScript compile or lint errors.
+  - `docker-compose.yml` provides a reproducible PostgreSQL 15 service.
 - **Status:** *NOT STARTED*
 
 ---
 
-### Phase 2B: Database Schemas & Domain Models
-- **Goal:** Provision relational database models in PostgreSQL using type-safe ORM migrations to model the full case-management domain.
+### Phase 2B: Database Schemas & Domain Models (Prisma ORM)
+- **Goal:** Provision relational database models in PostgreSQL using Prisma ORM migrations to model the full case-management domain.
 - **Major Features:**
-  - Models: `User`, `Role`, `Scheme`, `SchemeVersion`, `Application`, `CaseDossier`, `Document`, `ExtractedField`, `RuleResult`, `Deficiency`, `AuditLog`, `PostSelectionRecord`.
-  - Database migrations and connection pool setup.
-  - Repository / data access layer for CRUD operations.
+  - Prisma Schema (`prisma/schema.prisma`): `User`, `Role`, `Scheme`, `SchemeVersion`, `Application`, `CaseDossier`, `Document`, `ExtractedField`, `RuleResult`, `Deficiency`, `AuditLog`, `PostSelectionRecord`.
+  - Database migrations (`prisma migrate dev`) and connection pool setup.
+  - Typed Prisma client singleton (`src/server/db.ts`).
+  - Prisma Studio configuration for visual inspection of test cases.
 - **Dependencies:** Phase 2A.
 - **Acceptance Criteria:**
   - Database migrations apply cleanly.

@@ -138,10 +138,43 @@ TribalScholar AI is structured around an event-aware, case-centric orchestrator 
 
 ## 4. Current vs Target Repository Architecture
 
-- **Current Repository State:** Fresh workspace initialized in Phase 2 Step 1. No legacy dependencies or conflicting code.
-- **Target Technology Stack:**
-  - **Full-Stack Application:** Next.js (App Router) / React / TypeScript for a cohesive, performant monorepo structure OR Node.js/Express + Next.js frontend with shared TypeScript interfaces.
-  - **Database & ORM:** PostgreSQL with Prisma OR Drizzle ORM for type-safe relational modeling and migrations.
-  - **Document Processing:** PDF parsing, Tesseract/OCR engine abstraction, and entity extraction pipeline.
-  - **Styling & UI Components:** Tailwind CSS with Radix UI / shadcn-style component architecture for high-density, accessible government-tech design.
-  - **Testing Framework:** Vitest / Jest for unit and integration testing; Playwright for end-to-end user journey verification.
+- **Current Repository State:** Fresh workspace initialized in Phase 2 Step 1. Baseline persistent context files established.
+- **Locked Engineering Stack (Phase 2A Architecture Lock):**
+  - **Frontend Framework:** Next.js 14+ (App Router with React Server Components)
+  - **Frontend Language:** TypeScript (Strict Mode)
+  - **Styling System:** Tailwind CSS (v3)
+  - **UI Component Strategy:** shadcn/ui architecture (Radix UI primitives + Lucide Icons)
+  - **Backend / API Architecture:** Next.js Route Handlers (`src/app/api/...`) with decoupled Domain Services (`src/server/services/...`)
+  - **Database:** PostgreSQL (v15+)
+  - **ORM / Data Access Layer:** Prisma ORM (Locked: single declarative `schema.prisma`, type-safe client, built-in migrations, Prisma Studio)
+  - **Validation:** Zod (runtime validation and TypeScript schema inference)
+  - **Authentication / Session:** NextAuth.js (Auth.js) with JWT session strategy and role switcher for demo personas (`APPLICANT`, `VERIFICATION_OFFICER`, `SCHEME_ADMIN`, `OPERATIONS_DIRECTOR`)
+  - **Testing Framework:** Vitest (unit and integration tests for rules, schemas, and case workflows)
+  - **E2E Testing Framework:** Playwright (cross-role end-to-end workflow verification)
+  - **Document / Blob Storage:** Local Filesystem Provider (`uploads/documents/`) backed by pluggable `IStorageAdapter` interface
+  - **AI / Document Service:** Modular In-Process Document Service (`Tesseract.js` + `pdf-parse` + fuzzy phonetic entity matcher) with optional external LLM adapter interface
+  - **Containerization / Dev Environment:** Docker Compose (for PostgreSQL 15) + Host Node.js (v20+ LTS)
+  - **Linting & Formatting:** ESLint + Prettier (with `prettier-plugin-tailwindcss`)
+
+---
+
+## 5. Technology Selection Rationale & Tradeoffs
+
+| Domain | Selected Technology | Selection Rationale | Consequence / Tradeoff |
+| :--- | :--- | :--- | :--- |
+| **Frontend Framework** | **Next.js (App Router)** | Unifies server rendering for high-density dashboards, API route handlers, and client components for interactive document viewers in a single cohesive repository. | Requires clear client/server boundary discipline (`'use client'` vs server components). |
+| **Language** | **TypeScript (Strict)** | Provides end-to-end type safety across scheme schemas, case states, API contracts, and form inputs. | Strict typing requires explicit models for dynamic/polymorphic scheme payloads. |
+| **Styling** | **Tailwind CSS (v3)** | Utility-first styling enables rapid creation of dense, accessible government-tech tables, split-screen layouts, and visual status cards. | Large inline class lists in JSX; managed via encapsulated components and `clsx`/`tailwind-merge`. |
+| **UI Components** | **shadcn/ui (Radix UI)** | Unstyled, accessible (WCAG 2.1 AA) primitives with full code ownership in `components/ui`. Ideal for complex drawers and split-screen viewers. | Components reside in the project codebase rather than an external package. |
+| **Backend API** | **Next.js Route Handlers + Domain Services** | Eliminates polyrepo sync friction during fast SIH development while enforcing clean architectural separation in `src/server/services/`. | Must enforce strict domain boundaries so business logic does not leak into route handlers. |
+| **Database** | **PostgreSQL (v15+)** | Robust ACID relational integrity combined with powerful JSONB support for dynamic scheme schemas and dynamic form responses. | Requires running a Postgres instance (managed via Docker Compose locally). |
+| **ORM Layer** | **Prisma ORM** | Clear declarative `schema.prisma`, automatic type generation, bulletproof migrations, and built-in Prisma Studio for real-time data inspection. | Minor engine cold-start overhead compared to raw SQL query builders; fully acceptable for case management. |
+| **Validation** | **Zod** | Deep integration with TypeScript (`z.infer`), runtime parsing on API inputs, and dynamic schema generation for Scheme Studio. | Dynamic form schemas need careful recursive schema structures. |
+| **Auth & RBAC** | **NextAuth.js (Auth.js) JWT** | Fast, secure session handling with role claims in JWT. Includes a demo role switcher for seamless hackathon presentations. | Stateless JWT tokens require token versioning or short expiry for immediate revocation. |
+| **Testing** | **Vitest** | Blazing fast ESM-native test runner with Jest-compatible API. Perfect for unit testing deterministic rules and state machines. | Uses jsdom for React component tests; browser DOM testing deferred to Playwright. |
+| **E2E Testing** | **Playwright** | Full browser automation with traces and screenshots to verify complex multi-role workflows (applicant upload → officer verify → deficiency resolve). | Requires installing headless browser binaries in the development environment. |
+| **Document Storage** | **Local Filesystem + `IStorageAdapter`** | 100% offline-capable, reliable file storage for local development and demos. Adapter abstraction allows zero-rewrite switch to S3/GCS later. | File assets stored locally in development; requires directory permissions and Git-ignoring. |
+| **Document AI** | **Modular In-Process Service** | Performs OCR, classification, and fuzzy phonetic matching locally without cloud dependencies. Pluggable adapter interface for optional vision LLMs. | Complex handwritten regional language scripts require pre-processing or clear digital uploads. |
+| **Dev Environment** | **Docker Compose (Postgres) + Node.js LTS** | Zero-configuration database startup via Docker while preserving fast native Node.js hot-reloading for the application. | Requires Docker Desktop / engine installed, with direct local PostgreSQL fallback connection support. |
+| **Linting & Code Style** | **ESLint + Prettier** | Enforces consistent formatting, automatic import cleanup, and strict code quality across all coding agents. | Strict rules reject implicit `any` types and require disciplined lint compliance. |
+
