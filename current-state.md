@@ -9,7 +9,7 @@
 - **Current sub-phase:** Phase 2A (Engineering Foundation & Monorepo Tooling)
 - **Current task:** Scaffolding, verification, and tooling complete
 - **Status:** Phase 2A COMPLETED & VERIFIED; Ready for Phase 2B approval
-- **Last stable commit:** `c1574e3` ("phase-2a: lock tech stack and architecture")
+- **Last stable commit:** `61d7274` ("phase-2a: establish engineering foundation")
 - **Last completed work:** Next.js 14 App Router full-stack structure, TypeScript strict mode, Tailwind CSS v3, Prisma ORM, PostgreSQL Docker Compose on port 5433, server-authoritative RBAC, domain services, local storage adapter, Document-AI boundaries, Vitest test suite (10/10 passed), ESLint, Prettier, and live HTTP endpoint verification.
 - **Current working features:**
   - Next.js 14 App Router full-stack application with Gov-Tech layout shell
