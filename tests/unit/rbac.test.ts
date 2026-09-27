@@ -11,21 +11,21 @@ import { getDemoUser } from "@/server/auth/session";
 describe("Server-Authoritative RBAC & Validation Tests", () => {
   it("should validate allowed roles with Zod schema", () => {
     expect(UserRoleSchema.safeParse("APPLICANT").success).toBe(true);
-    expect(UserRoleSchema.safeParse("OFFICER").success).toBe(true);
-    expect(UserRoleSchema.safeParse("ADMIN").success).toBe(true);
-    expect(UserRoleSchema.safeParse("MANAGEMENT").success).toBe(true);
+    expect(UserRoleSchema.safeParse("VERIFICATION_OFFICER").success).toBe(true);
+    expect(UserRoleSchema.safeParse("SCHEME_ADMIN").success).toBe(true);
+    expect(UserRoleSchema.safeParse("OPERATIONS_DIRECTOR").success).toBe(true);
     expect(UserRoleSchema.safeParse("SUPERUSER").success).toBe(false);
   });
 
   it("should enforce server-side role checks correctly", () => {
-    const officer = getDemoUser("OFFICER");
-    expect(hasRole(officer, "OFFICER")).toBe(true);
-    expect(hasRole(officer, "ADMIN")).toBe(false);
+    const officer = getDemoUser("VERIFICATION_OFFICER");
+    expect(hasRole(officer, "VERIFICATION_OFFICER")).toBe(true);
+    expect(hasRole(officer, "SCHEME_ADMIN")).toBe(false);
   });
 
   it("should verify role permissions strictly", () => {
     const applicant = getDemoUser("APPLICANT");
-    const officer = getDemoUser("OFFICER");
+    const officer = getDemoUser("VERIFICATION_OFFICER");
 
     expect(hasPermission(applicant, "application:create")).toBe(true);
     expect(hasPermission(applicant, "case:adjudicate")).toBe(false);
@@ -42,7 +42,7 @@ describe("Server-Authoritative RBAC & Validation Tests", () => {
       role: "APPLICANT",
     };
 
-    expect(() => assertAuthorized(applicant, "OFFICER", "Officer Case Desk")).toThrow(
+    expect(() => assertAuthorized(applicant, "VERIFICATION_OFFICER", "Officer Case Desk")).toThrow(
       /Forbidden: Server-side RBAC rejected access/
     );
   });

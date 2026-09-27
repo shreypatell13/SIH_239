@@ -9,7 +9,7 @@ export default function AdminSchemeStudioPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">Scheme Studio</h1>
-            <Badge variant="outline">Role: ADMIN</Badge>
+            <Badge variant="outline">Role: SCHEME_ADMIN</Badge>
           </div>
           <p className="text-sm text-slate-500">
             Declarative scheme authoring, versioning, document requirements, and deterministic rules

@@ -11,7 +11,7 @@ export default function ManagementControlTowerPage() {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Operations Control Tower
             </h1>
-            <Badge variant="outline">Role: MANAGEMENT</Badge>
+            <Badge variant="outline">Role: OPERATIONS_DIRECTOR</Badge>
           </div>
           <p className="text-sm text-slate-500">
             Executive monitoring, SLA tracking, pipeline bottleneck analysis, and recurring

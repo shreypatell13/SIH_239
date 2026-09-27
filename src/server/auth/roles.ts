@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-export const UserRoleSchema = z.enum(["APPLICANT", "OFFICER", "ADMIN", "MANAGEMENT"]);
+export const UserRoleSchema = z.enum([
+  "APPLICANT",
+  "VERIFICATION_OFFICER",
+  "SCHEME_ADMIN",
+  "OPERATIONS_DIRECTOR",
+]);
 export type UserRole = z.infer<typeof UserRoleSchema>;
 
 export interface AuthenticatedUser {
@@ -20,7 +25,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly string[]> = {
     "document:upload:own",
     "deficiency:resolve:own",
   ],
-  OFFICER: [
+  VERIFICATION_OFFICER: [
     "application:read:assigned",
     "application:verify",
     "document:read:assigned",
@@ -28,7 +33,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly string[]> = {
     "deficiency:issue",
     "case:adjudicate",
   ],
-  ADMIN: [
+  SCHEME_ADMIN: [
     "scheme:create",
     "scheme:update",
     "scheme:version",
@@ -36,7 +41,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly string[]> = {
     "workflow:configure",
     "system:manage",
   ],
-  MANAGEMENT: [
+  OPERATIONS_DIRECTOR: [
     "analytics:read:all",
     "control_tower:view",
     "backlog:inspect",

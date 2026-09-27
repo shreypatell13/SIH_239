@@ -13,7 +13,7 @@
 | **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                        |
 | **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                  |
 | **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier |
-| **Phase 2B**         | Database Schemas & Domain Models                              | _PENDING_     | Dependent on 2A                                                                 |
+| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)     |
 | **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | _PENDING_     | Dependent on 2B                                                                 |
 | **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | _PENDING_     | Dependent on 2B, 2C                                                             |
 | **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | _PENDING_     | Dependent on 2C, 2D                                                             |
@@ -69,16 +69,19 @@
 
 - **Goal:** Provision relational database models in PostgreSQL using Prisma ORM migrations to model the full case-management domain.
 - **Major Features:**
-  - Prisma Schema (`prisma/schema.prisma`): `User`, `Role`, `Scheme`, `SchemeVersion`, `Application`, `CaseDossier`, `Document`, `ExtractedField`, `RuleResult`, `Deficiency`, `AuditLog`, `PostSelectionRecord`.
-  - Database migrations (`prisma migrate dev`) and connection pool setup.
-  - Typed Prisma client singleton (`src/server/db.ts`).
-  - Prisma Studio configuration for visual inspection of test cases.
+  - Prisma Schema (`prisma/schema.prisma`): 13 models (`User`, `ApplicantProfile`, `Scheme`, `SchemeVersion`, `Application`, `CaseDossier`, `Document`, `ExtractedField`, `RuleResult`, `Deficiency`, `AuditLog`, `PostSelectionRecord`, `SystemHealth`) and 13 enums (`UserRole`, `CaseStage`, `CaseState`, `ResponsibleActor`, `ApplicationStatus`, `DocumentType`, `ProcessingStatus`, `RuleOutcome`, `DeficiencyType`, `DeficiencyStatus`, `RecheckStatus`, `DisbursementStatus`, `ExtractorType`).
+  - Canonical role rename: `VERIFICATION_OFFICER`, `SCHEME_ADMIN`, `OPERATIONS_DIRECTOR` (with `APPLICANT` preserved).
+  - Versioning strategy: SchemeVersion immutability for applications; Document versions with `isLatestVersion` for upload audit history.
+  - SQL migration generated in `prisma/migrations/20260928000000_phase_2b_domain/migration.sql`.
+  - Repository layer under `src/server/repositories/` (`UserRepository`, `ApplicantRepository`, `SchemeRepository`, `CaseRepository`, `DocumentRepository`, `DeficiencyRepository`, `AuditRepository`).
+  - Seed script in `prisma/seed.ts` covering demo personas, NFST, NOS, and initial version configurations.
+  - Vitest test suite updated: 18 unit tests across 5 test suites.
 - **Dependencies:** Phase 2A.
 - **Acceptance Criteria:**
-  - Database migrations apply cleanly.
-  - Seed script verifies relational integrity across models.
-  - Unit tests confirm schema constraints and relationships.
-- **Status:** _NOT STARTED_
+  - Database migration SQL generated cleanly.
+  - Seed script created for relational integrity and demo schemas.
+  - Unit tests confirm schema constraints, versioning, and RBAC contracts (18/18 tests pass).
+- **Status:** **COMPLETED** (Verified)
 
 ---
 

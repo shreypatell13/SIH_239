@@ -7,22 +7,394 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ==========================================
+// DOMAIN ENUMS
+// ==========================================
+
 enum UserRole {
   APPLICANT
-  OFFICER
-  ADMIN
-  MANAGEMENT
+  VERIFICATION_OFFICER
+  SCHEME_ADMIN
+  OPERATIONS_DIRECTOR
 }
 
+enum CaseStage {
+  DRAFT
+  SUBMITTED
+  AUTOMATED_VERIFICATION
+  OFFICER_REVIEW
+  DEFICIENCY_PENDING
+  COMMITTEE_SELECTION
+  SANCTIONED
+  REJECTED
+  WITHDRAWN
+}
+
+enum CaseState {
+  PENDING
+  IN_PROGRESS
+  ACTION_REQUIRED
+  COMPLETED
+  BLOCKED
+  ESCALATED
+}
+
+enum ResponsibleActor {
+  APPLICANT
+  VERIFICATION_OFFICER
+  SYSTEM
+  COMMITTEE
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  WITHDRAWN
+}
+
+enum DocumentType {
+  CASTE_CERTIFICATE
+  INCOME_CERTIFICATE
+  DEGREE_TRANSCRIPT
+  ADMISSION_OFFER_LETTER
+  RESEARCH_PROPOSAL
+  PASSPORT
+  OTHER
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum RuleOutcome {
+  PASS
+  FAIL
+  AMBIGUOUS
+  SKIPPED
+}
+
+enum DeficiencyType {
+  DOCUMENT_MISSING
+  DOCUMENT_EXPIRED
+  DOCUMENT_ILLEGIBLE
+  DATA_MISMATCH
+  AUTHORITY_SEAL_MISSING
+  CUSTOM
+}
+
+enum DeficiencyStatus {
+  OPEN
+  RESOLVED
+  WAIVED
+  EXPIRED
+}
+
+enum RecheckStatus {
+  PENDING_RECHECK
+  RECHECKED_PASS
+  RECHECKED_FAIL
+}
+
+enum DisbursementStatus {
+  PENDING
+  FIRST_INSTALLMENT
+  ONGOING
+  COMPLETED
+  SUSPENDED
+}
+
+enum ExtractorType {
+  AI
+  HUMAN_OVERRIDE
+}
+
+// ==========================================
+// DOMAIN MODELS
+// ==========================================
+
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  role      UserRole @default(APPLICANT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String             @id @default(uuid())
+  email              String             @unique
+  passwordHash       String?
+  name               String?
+  role               UserRole           @default(APPLICANT)
+  isActive           Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  profile            ApplicantProfile?
+  applications       Application[]      @relation("ApplicantUser")
+  assignedCases      CaseDossier[]      @relation("AssignedOfficer")
+  issuedDeficiencies Deficiency[]       @relation("DeficiencyIssuer")
+  auditLogs          AuditLog[]         @relation("UserAuditLogs")
+  publishedVersions  SchemeVersion[]    @relation("SchemeVersionPublisher")
+  ruleOverrides      RuleResult[]       @relation("RuleResultOverriddenBy")
 
   @@map("users")
+}
+
+model ApplicantProfile {
+  id                       String                @id @default(uuid())
+  userId                   String                @unique
+  user                     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth              DateTime?
+  gender                   String?
+  category                 String                @default("ST")
+  stateDomicile            String?
+  district                 String?
+  mobile                   String?
+  aadhaarLast4             String?
+  academicQualification    String?
+  institutionName          String?
+  yearOfPassing            Int?
+  percentageObtained       Float?
+  annualFamilyIncome       Float?
+  casteCertificateVerified Boolean               @default(false)
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+  applications             Application[]
+  postSelectionRecords     PostSelectionRecord[]
+
+  @@map("applicant_profiles")
+}
+
+model Scheme {
+  id          String          @id @default(uuid())
+  code        String          @unique // e.g. "NFST", "NOS"
+  name        String
+  description String
+  ministry    String          @default("Ministry of Tribal Affairs")
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  versions    SchemeVersion[]
+
+  @@map("schemes")
+}
+
+model SchemeVersion {
+  id                   String                @id @default(uuid())
+  schemeId             String
+  scheme               Scheme                @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  versionNumber        Int
+  effectiveFrom        DateTime              @default(now())
+  effectiveTo          DateTime?
+  formSchema           Json                  // Declarative JSON schema for form fields
+  documentRequirements Json                  // Declarative JSON schema for required documents
+  eligibilityRules     Json                  // Declarative ruleset for thresholds (age, income, percentage, etc.)
+  workflowConfig       Json?                 // SLA days, stages
+  publishedById        String?
+  publishedBy          User?                 @relation("SchemeVersionPublisher", fields: [publishedById], references: [id], onDelete: SetNull)
+  publishedAt          DateTime              @default(now())
+  isActive             Boolean               @default(true)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  applications         Application[]
+  ruleResults          RuleResult[]
+  postSelectionRecords PostSelectionRecord[]
+
+  @@unique([schemeId, versionNumber])
+  @@index([schemeId, isActive])
+  @@map("scheme_versions")
+}
+
+model Application {
+  id                 String            @id @default(uuid())
+  applicationNumber  String            @unique
+  schemeVersionId    String
+  schemeVersion      SchemeVersion     @relation(fields: [schemeVersionId], references: [id], onDelete: Restrict)
+  applicantProfileId String
+  applicantProfile   ApplicantProfile  @relation(fields: [applicantProfileId], references: [id], onDelete: Restrict)
+  submittedById      String
+  submittedBy        User              @relation("ApplicantUser", fields: [submittedById], references: [id], onDelete: Restrict)
+  status             ApplicationStatus @default(DRAFT)
+  formData           Json              // Stored form payload
+  submittedAt        DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  caseDossier        CaseDossier?
+
+  @@unique([applicantProfileId, schemeVersionId]) // One submission per profile per version
+  @@map("applications")
+}
+
+model CaseDossier {
+  id                  String               @id @default(uuid())
+  applicationId       String               @unique
+  application         Application          @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  caseNumber          String               @unique
+  currentStage        CaseStage            @default(SUBMITTED)
+  currentState        CaseState            @default(PENDING)
+  blocker             String?
+  responsibleActor    ResponsibleActor     @default(SYSTEM)
+  nextAction          String               @default("Automated verification underway.")
+  deadline            DateTime?
+  riskScore           Int?                 // 0-100 AI computed risk / anomaly indicator
+  officerAssignedId   String?
+  officerAssigned     User?                @relation("AssignedOfficer", fields: [officerAssignedId], references: [id], onDelete: SetNull)
+  committeeDecision   String?              // e.g. "PENDING", "APPROVED", "REJECTED"
+  committeeRemarks    String?
+  decisionAt          DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  documents           Document[]
+  ruleResults         RuleResult[]
+  deficiencies        Deficiency[]
+  auditLogs           AuditLog[]
+  postSelectionRecord PostSelectionRecord?
+
+  @@index([currentStage, officerAssignedId])
+  @@index([updatedAt])
+  @@map("case_dossiers")
+}
+
+model Document {
+  id                       String             @id @default(uuid())
+  caseDossierId            String
+  caseDossier              CaseDossier        @relation(fields: [caseDossierId], references: [id], onDelete: Cascade)
+  documentType             DocumentType
+  originalFilename         String
+  storagePath              String             // Key in IStorageAdapter
+  mimeType                 String
+  fileSizeBytes            Int
+  uploadedById             String?
+  uploadedAt               DateTime           @default(now())
+  version                  Int                @default(1)
+  isLatestVersion          Boolean            @default(true)
+  processingStatus         ProcessingStatus   @default(PENDING)
+  classificationConfidence Float?
+  classifiedAs             DocumentType?
+  pageCount                Int?
+  deficiencyId             String?            // If uploaded specifically to resolve a deficiency
+  deficiency               Deficiency?        @relation("DeficiencyResolvingDocument", fields: [deficiencyId], references: [id], onDelete: SetNull)
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+  extractedFields          ExtractedField[]
+  targetedDeficiencies     Deficiency[]       @relation("DeficiencyTargetDocument")
+
+  @@index([caseDossierId, documentType, isLatestVersion])
+  @@map("documents")
+}
+
+model ExtractedField {
+  id                String         @id @default(uuid())
+  documentId        String
+  document          Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  fieldKey          String         // e.g. "applicantName", "annualIncome", "casteCategory", "issueDate"
+  rawValue          String
+  normalizedValue   String?
+  confidenceScore   Float          // 0.0 - 1.0
+  pageNumber        Int            @default(1)
+  boundingBoxX      Float?
+  boundingBoxY      Float?
+  boundingBoxWidth  Float?
+  boundingBoxHeight Float?
+  sourceSnippet     String?
+  extractedBy       ExtractorType  @default(AI)
+  createdAt         DateTime       @default(now())
+
+  @@index([documentId, fieldKey])
+  @@map("extracted_fields")
+}
+
+model RuleResult {
+  id                 String         @id @default(uuid())
+  caseDossierId      String
+  caseDossier        CaseDossier    @relation(fields: [caseDossierId], references: [id], onDelete: Cascade)
+  schemeVersionId    String
+  schemeVersion      SchemeVersion  @relation(fields: [schemeVersionId], references: [id], onDelete: Restrict)
+  ruleKey            String         // e.g. "AGE_LIMIT", "INCOME_CEILING", "QUALIFYING_PERCENTAGE", "ST_VERIFICATION"
+  ruleDescription    String
+  outcome            RuleOutcome
+  evidenceFieldIds   String[]       // IDs of ExtractedField used
+  computedValue      String?
+  expectedValue      String?
+  failureReason      String?
+  runId              String         // UUID grouping this rule evaluation pass
+  evaluatedAt        DateTime       @default(now())
+  evaluatedBySystem  Boolean        @default(true)
+  overrideByUserId   String?
+  overrideByUser     User?          @relation("RuleResultOverriddenBy", fields: [overrideByUserId], references: [id], onDelete: SetNull)
+  overrideRemark     String?
+  deficiencies       Deficiency[]
+
+  @@index([caseDossierId, runId])
+  @@index([outcome])
+  @@map("rule_results")
+}
+
+model Deficiency {
+  id                      String            @id @default(uuid())
+  caseDossierId           String
+  caseDossier             CaseDossier       @relation(fields: [caseDossierId], references: [id], onDelete: Cascade)
+  issuedById              String
+  issuedBy                User              @relation("DeficiencyIssuer", fields: [issuedById], references: [id], onDelete: Restrict)
+  issuedAt                DateTime          @default(now())
+  documentType            DocumentType?
+  targetDocumentId        String?
+  targetDocument          Document?         @relation("DeficiencyTargetDocument", fields: [targetDocumentId], references: [id], onDelete: SetNull)
+  ruleResultId            String?
+  ruleResult              RuleResult?       @relation(fields: [ruleResultId], references: [id], onDelete: SetNull)
+  deficiencyType          DeficiencyType
+  description             String
+  responseDeadline        DateTime
+  status                  DeficiencyStatus  @default(OPEN)
+  resolvedAt              DateTime?
+  recheckStatus           RecheckStatus?
+  recheckAt               DateTime?
+  officerResolutionRemark String?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  resolutionDocuments     Document[]        @relation("DeficiencyResolvingDocument")
+
+  @@index([caseDossierId, status])
+  @@map("deficiencies")
+}
+
+model AuditLog {
+  id            String       @id @default(uuid())
+  caseDossierId String?
+  caseDossier   CaseDossier? @relation(fields: [caseDossierId], references: [id], onDelete: SetNull)
+  actorId       String?
+  actor         User?        @relation("UserAuditLogs", fields: [actorId], references: [id], onDelete: SetNull)
+  actorRole     UserRole?
+  actionType    String       // e.g. "APPLICATION_SUBMITTED", "STATE_TRANSITION", "DEFICIENCY_ISSUED"
+  previousState String?
+  newState      String?
+  payload       Json?
+  ipAddress     String?
+  createdAt     DateTime     @default(now())
+
+  @@index([caseDossierId, createdAt])
+  @@index([actorId])
+  @@map("audit_logs")
+}
+
+model PostSelectionRecord {
+  id                   String              @id @default(uuid())
+  caseDossierId        String              @unique
+  caseDossier          CaseDossier         @relation(fields: [caseDossierId], references: [id], onDelete: Restrict)
+  applicantProfileId   String
+  applicantProfile     ApplicantProfile    @relation(fields: [applicantProfileId], references: [id], onDelete: Restrict)
+  schemeVersionId      String
+  schemeVersion        SchemeVersion       @relation(fields: [schemeVersionId], references: [id], onDelete: Restrict)
+  awardedAmount        Decimal             @db.Decimal(12, 2)
+  tenureStartDate      DateTime
+  tenureEndDate        DateTime
+  researchInstitution  String?
+  supervisorName       String?
+  fellowshipType       String?             // e.g. "JRF", "SRF"
+  disbursementStatus   DisbursementStatus  @default(PENDING)
+  pfmsReferenceId      String?
+  renewalDueDate       DateTime?
+  continuationApproved Boolean?
+  remarks              String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@map("post_selection_records")
 }
 
 model SystemHealth {

@@ -25,7 +25,7 @@ export default function HomePage() {
     },
     {
       title: "Officer Case Workspace",
-      role: "OFFICER",
+      role: "VERIFICATION_OFFICER",
       description:
         "Triage scholarship dossiers, inspect split-screen visual evidence bounding boxes, and adjudicate with audit remarks.",
       href: "/officer",
@@ -35,7 +35,7 @@ export default function HomePage() {
     },
     {
       title: "Scheme Studio",
-      role: "ADMIN",
+      role: "SCHEME_ADMIN",
       description:
         "Declaratively configure scheme policies, eligibility thresholds, required document matrices, and workflow SLAs.",
       href: "/admin",
@@ -45,7 +45,7 @@ export default function HomePage() {
     },
     {
       title: "Operations Control Tower",
-      role: "MANAGEMENT",
+      role: "OPERATIONS_DIRECTOR",
       description:
         "Monitor scheme health, identify application processing bottlenecks, track officer workload, and analyze recurring defects.",
       href: "/management",

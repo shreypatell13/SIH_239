@@ -35,7 +35,7 @@ export class CaseService implements ICaseService {
       currentStage: "DOCUMENT_VERIFICATION",
       currentState: "IN_PROGRESS",
       blocker: null,
-      responsibleActor: "OFFICER",
+      responsibleActor: "VERIFICATION_OFFICER",
       nextAction: "Complete cross-document consistency check",
       slaDaysRemaining: 4,
     };

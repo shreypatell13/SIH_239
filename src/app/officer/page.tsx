@@ -11,7 +11,7 @@ export default function OfficerWorkspacePage() {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Officer Case Workspace
             </h1>
-            <Badge variant="outline">Role: OFFICER</Badge>
+            <Badge variant="outline">Role: VERIFICATION_OFFICER</Badge>
           </div>
           <p className="text-sm text-slate-500">
             Split-screen verification, evidence inspection, and human-in-the-loop decision desk.

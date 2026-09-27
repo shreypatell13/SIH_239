@@ -6,33 +6,35 @@
 ---
 
 - **Current phase:** Phase 2 (Actual Engineering)
-- **Current sub-phase:** Phase 2A (Engineering Foundation & Monorepo Tooling)
-- **Current task:** Scaffolding, verification, and tooling complete
-- **Status:** Phase 2A COMPLETED & VERIFIED; Ready for Phase 2B approval
-- **Last stable commit:** `61d7274` ("phase-2a: establish engineering foundation")
-- **Last completed work:** Next.js 14 App Router full-stack structure, TypeScript strict mode, Tailwind CSS v3, Prisma ORM, PostgreSQL Docker Compose on port 5433, server-authoritative RBAC, domain services, local storage adapter, Document-AI boundaries, Vitest test suite (10/10 passed), ESLint, Prettier, and live HTTP endpoint verification.
+- **Current sub-phase:** Phase 2B (Database Schemas & Domain Models)
+- **Current task:** Domain schema authoring, migration, repositories, seed configuration, and unit tests
+- **Status:** Phase 2B COMPLETED & VERIFIED; Ready for Phase 2C
+- **Last stable commit:** pending commit ("phase-2b: implement database schemas and domain models")
+- **Last completed work:** Comprehensive domain model implemented across 13 Prisma models and 13 enums; canonical role rename propagated (`VERIFICATION_OFFICER`, `SCHEME_ADMIN`, `OPERATIONS_DIRECTOR`, and `APPLICANT`); SQL migration generated under `prisma/migrations/20260928000000_phase_2b_domain/migration.sql`; complete repository layer established under `src/server/repositories/`; deterministic seed script authored in `prisma/seed.ts`; 18/18 Vitest unit tests passing across 5 suites; ESLint, Prettier, and TypeScript strict checks 100% clean.
 - **Current working features:**
-  - Next.js 14 App Router full-stack application with Gov-Tech layout shell
-  - Four role routes live: `/applicant`, `/officer`, `/admin`, `/management` (all returning HTTP 200)
-  - API endpoints: `/api/health` (healthy, db connected) and `/api/version` (phase 2a metadata)
-  - Server-authoritative RBAC permission matrix and demo personas
-  - Deterministic eligibility rule evaluator for NFST and NOS
-  - Local filesystem storage adapter (`LocalStorageAdapter`) implementing `IStorageAdapter`
-  - Document-AI boundary interfaces (classification, OCR, extraction, evidence coordinates)
-  - Docker Compose PostgreSQL 15 container healthy on port 5433 (`tribalscholar_postgres`)
-  - Prisma client generated and database synchronized via `prisma db push`
-  - Vitest test runner with 10 unit tests passing
-  - ESLint and Prettier passing with zero warnings or errors
+  - Full case-management relational schema in `prisma/schema.prisma` with 13 models and 13 enums
+  - Clear separation of `User` (auth identity) and `ApplicantProfile` (ST demographics)
+  - Explicit decoupling of `Application` (immutable submission event) and `CaseDossier` (mutable lifecycle orchestrator)
+  - Declarative scheme versioning via `Scheme` & `SchemeVersion` with JSONB form schemas, document matrices, and eligibility rules
+  - Historical document tracking via `Document` versioning (`version`, `isLatestVersion`)
+  - Clear demarcation between AI findings (`ExtractedField.extractedBy = AI`) and authoritative human actions
+  - Tamper-evident, append-only `AuditLog` model
+  - Post-selection continuation record model `PostSelectionRecord`
+  - Server-side repository pattern under `src/server/repositories/` (`UserRepository`, `ApplicantRepository`, `SchemeRepository`, `CaseRepository`, `DocumentRepository`, `DeficiencyRepository`, `AuditRepository`)
+  - Deterministic demo seed script in `prisma/seed.ts` for NFST and NOS
+  - Vitest test suite with 18 tests passing (including 8 new domain and schema contract tests)
+  - Next.js production build (`npm run build`) compiling cleanly (10/10 static pages)
 - **Current blockers:** None
 - **Current errors:** None
 - **Files recently changed:**
-  - `package.json`, `tsconfig.json`, `next.config.mjs`, `tailwind.config.ts`, `postcss.config.mjs`
-  - `docker-compose.yml`, `.env`, `.env.example`, `.gitignore`, `.eslintrc.json`, `.prettierrc`
-  - `vitest.config.ts`, `playwright.config.ts`, `prisma/schema.prisma`
-  - `src/app/**`, `src/components/**`, `src/lib/**`, `src/server/**`, `tests/**`
+  - `prisma/schema.prisma`, `prisma/migrations/**`, `prisma/seed.ts`
+  - `src/server/auth/roles.ts`, `src/server/auth/session.ts`
+  - `src/server/repositories/**`
+  - `src/app/**`, `src/components/layout/nav-shell.tsx`
+  - `tests/unit/rbac.test.ts`, `tests/unit/domain.test.ts`
   - `phases.md`, `current-state.md`
-- **Tests run:** Vitest (4 test files, 10 tests), ESLint (`next lint`), Prettier (`prettier --check .`), TypeScript check (`tsc --noEmit`), Next.js production build (`next build`), Live API & Route curl verification
-- **Tests passing:** 10/10 Vitest unit tests, 0 lint errors, 0 format issues, 0 TypeScript errors, 10/10 static pages built, 5/5 HTTP routes returning 200 OK
+- **Tests run:** Vitest (5 test files, 18 tests), ESLint (`next lint`), Prettier (`prettier --check .`), TypeScript check (`tsc --noEmit`), Next.js production build (`next build`)
+- **Tests passing:** 18/18 Vitest unit tests, 0 lint errors, 0 format issues, 0 TypeScript errors, 10/10 static pages built
 - **Tests failing:** 0
-- **Exact next step:** Phase 2B — Database Schemas & Domain Models (Author full Prisma domain schema: User, Role, Scheme, SchemeVersion, Application, CaseDossier, Document, ExtractedField, RuleResult, Deficiency, AuditLog, PostSelectionRecord and execute migrations)
+- **Exact next step:** Phase 2C — Authentication & Role-Based Access Control (RBAC) (NextAuth.js JWT session integration, route guards, demo persona switcher)
 - **Last verified:** 2026-09-28 (Local System Time)

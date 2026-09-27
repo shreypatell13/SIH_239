@@ -8,25 +8,25 @@ export const DEMO_USERS: Record<UserRole, AuthenticatedUser> = {
     role: "APPLICANT",
     isDemoSession: true,
   },
-  OFFICER: {
+  VERIFICATION_OFFICER: {
     id: "usr_demo_officer_001",
     email: "priya.sharma@tribal.gov.in",
     name: "Priya Sharma (Verification Officer)",
-    role: "OFFICER",
+    role: "VERIFICATION_OFFICER",
     isDemoSession: true,
   },
-  ADMIN: {
+  SCHEME_ADMIN: {
     id: "usr_demo_admin_001",
     email: "rajesh.verma@tribal.gov.in",
     name: "Rajesh Verma (Scheme Administrator)",
-    role: "ADMIN",
+    role: "SCHEME_ADMIN",
     isDemoSession: true,
   },
-  MANAGEMENT: {
+  OPERATIONS_DIRECTOR: {
     id: "usr_demo_management_001",
     email: "sunita.rao@tribal.gov.in",
     name: "Dr. Sunita Rao (Operations Director)",
-    role: "MANAGEMENT",
+    role: "OPERATIONS_DIRECTOR",
     isDemoSession: true,
   },
 };

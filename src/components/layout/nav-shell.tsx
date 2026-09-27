@@ -10,9 +10,14 @@ export function NavShell() {
 
   const navLinks = [
     { href: "/applicant", label: "Applicant Portal", icon: User, role: "APPLICANT" },
-    { href: "/officer", label: "Officer Workspace", icon: ShieldCheck, role: "OFFICER" },
-    { href: "/admin", label: "Scheme Studio", icon: Settings, role: "ADMIN" },
-    { href: "/management", label: "Control Tower", icon: Activity, role: "MANAGEMENT" },
+    {
+      href: "/officer",
+      label: "Officer Workspace",
+      icon: ShieldCheck,
+      role: "VERIFICATION_OFFICER",
+    },
+    { href: "/admin", label: "Scheme Studio", icon: Settings, role: "SCHEME_ADMIN" },
+    { href: "/management", label: "Control Tower", icon: Activity, role: "OPERATIONS_DIRECTOR" },
   ];
 
   return (
