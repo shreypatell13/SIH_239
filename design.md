@@ -2,15 +2,16 @@
 
 **System:** TribalScholar AI (SIH Problem Statement 26239)  
 **Document Status:** Baseline Approved (Phase 2 Step 1)  
-**Design Standard:** Professional, Accessible Government-Tech Dashboard  
+**Design Standard:** Professional, Accessible Government-Tech Dashboard
 
 ---
 
 ## 1. Design Philosophy & Visual Language
 
 ### 1.1 Core UX Principles
+
 1. **Explainable Status Over Opaque Labels:**
-   - Traditional portals state: *"Status: Deficient"*.
+   - Traditional portals state: _"Status: Deficient"_.
    - TribalScholar AI states:
      - **Stage:** Document Verification
      - **State:** Action Required
@@ -25,14 +26,15 @@
    - Dashboards are engineered for high throughput. Officers and administrators need dense, structured information without unnecessary whitespace or decorative animations.
 
 ### 1.2 Visual Direction & Design Tokens
+
 - **Theme:** Clean, modern, authoritative Gov-Tech aesthetic.
 - **Color Palette:**
-  - *Deep Navy / Slate (`#0f172a`, `#1e293b`):* Structural hierarchy, headers, navigation.
-  - *Saffron / Ochre Accent (`#d97706`, `#b45309`):* Subtle national-tribal heritage cue, highlights, badges.
-  - *Emerald Green (`#059669`, `#10b981`):* Verified states, passing rules, approvals.
-  - *Amber / Ochre (`#d97706`, `#f59e0b`):* Deficiencies, ambiguities, pending officer reviews.
-  - *Crimson / Rose (`#dc2626`, `#ef4444`):* Hard non-compliance, formal rejection, expired credentials.
-  - *Muted Cool Grey (`#f8fafc`, `#f1f5f9`, `#e2e8f0`):* Background surfaces, card borders, dividers.
+  - _Deep Navy / Slate (`#0f172a`, `#1e293b`):_ Structural hierarchy, headers, navigation.
+  - _Saffron / Ochre Accent (`#d97706`, `#b45309`):_ Subtle national-tribal heritage cue, highlights, badges.
+  - _Emerald Green (`#059669`, `#10b981`):_ Verified states, passing rules, approvals.
+  - _Amber / Ochre (`#d97706`, `#f59e0b`):_ Deficiencies, ambiguities, pending officer reviews.
+  - _Crimson / Rose (`#dc2626`, `#ef4444`):_ Hard non-compliance, formal rejection, expired credentials.
+  - _Muted Cool Grey (`#f8fafc`, `#f1f5f9`, `#e2e8f0`):_ Background surfaces, card borders, dividers.
 - **Typography:** Inter / system font stack; high legibility, tabular numbers (`tabular-nums`) for currency, dates, and certificate numbers.
 - **Accessibility:** WCAG 2.1 AA compliant contrast ratios, full keyboard navigation support, distinct color + icon dual-encoding for all status badges.
 
@@ -41,6 +43,7 @@
 ## 2. Main User Areas & Screen Specifications
 
 ### 2.1 Applicant Experience
+
 1. **Authentication & Profile:**
    - Clean login / registration with mobile/email OTP simulation.
    - Profile overview displaying basic demographic information, caste affiliation, and linked documents.
@@ -63,8 +66,9 @@
    - One-click "Resubmit for Targeted Verification" button.
 
 ### 2.2 Officer Case Workspace
+
 1. **Officer Triage Dashboard:**
-   - Worklist filters: *Pending Review*, *Deficiencies Resubmitted*, *High Priority / SLA Risk*, *Approved*, *Rejected*.
+   - Worklist filters: _Pending Review_, _Deficiencies Resubmitted_, _High Priority / SLA Risk_, _Approved_, _Rejected_.
    - Filter by scheme (**NFST** vs **NOS**), category, and assigned date.
 2. **Split-Screen Case Dossier Review:**
    - **Left Pane (Applicant Data & Rule Findings):**
@@ -76,13 +80,14 @@
      - Zoom, rotate, page navigation, and download tools.
 3. **Deficiency Management Drawer:**
    - Allows officer to select one or more documents or data fields.
-   - Choose from pre-configured deficiency templates (e.g., *"Blurry / illegible scan"*, *"Expired financial year"*, *"Authority seal missing"*) or type custom remarks.
+   - Choose from pre-configured deficiency templates (e.g., _"Blurry / illegible scan"_, _"Expired financial year"_, _"Authority seal missing"_) or type custom remarks.
    - Set applicant response window (e.g., 7 days).
 4. **Human Decision Desk:**
    - Action buttons: `Approve & Forward to Committee`, `Issue Structured Deficiency`, `Reject Application`.
    - Mandatory remark entry for any rejection or deficiency to guarantee full auditability.
 
 ### 2.3 Admin / Scheme Studio
+
 1. **Scheme Management Console:**
    - Overview of active schemes (**NFST**, **NOS**) with version indicators and active application counts.
 2. **Dynamic Schema Configurator:**
@@ -97,6 +102,7 @@
    - Define verification stages, assignable officer groups, review turnaround SLAs (e.g., 5 working days).
 
 ### 2.4 Management Operations Control Tower
+
 1. **Executive KPI Dashboard:**
    - Total applications received, verified, deficient, approved, and rejected.
    - Average Turnaround Time (TAT) from submission to final decision.
@@ -112,6 +118,7 @@
    - Insights feed directly into Scheme Studio guidance updates.
 
 ### 2.5 Post-Selection Management
+
 1. **Scholar Dossier & Continuation Record:**
    - Centralized view of selected awardees under NFST and NOS.
    - Fellowship tenure dates, awarded financial amounts, and assigned research institution/university.
@@ -140,6 +147,7 @@ Every status presentation in the system must conform to the following JSON struc
 ```
 
 ### Visual Rendering:
+
 ```
 +-----------------------------------------------------------------------------------+
 |  [STAGE: Document Verification]   *   [STATE: Action Required]                   |

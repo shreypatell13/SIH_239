@@ -2,41 +2,43 @@
 
 **System:** TribalScholar AI (SIH Problem Statement 26239)  
 **Roadmap Scope:** Phase 1 Design through Phase 2 Engineering  
-**Document Status:** Baseline Approved (Phase 2 Step 1)  
+**Document Status:** Baseline Approved (Phase 2 Step 1)
 
 ---
 
 ## Roadmap Overview & Progress Matrix
 
-| Phase / Sub-Phase | Focus Area | Status | Verified Acceptance |
-| :--- | :--- | :--- | :--- |
-| **Phase 1** | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined |
-| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory | **COMPLETED** | 6 persistent context files created; Git repository initialized |
-| **Phase 2A** | Engineering Foundation & Monorepo Tooling | *PENDING* | Ready to start |
-| **Phase 2B** | Database Schemas & Domain Models | *PENDING* | Dependent on 2A |
-| **Phase 2C** | Authentication & Role-Based Access Control (RBAC) | *PENDING* | Dependent on 2B |
-| **Phase 2D** | Scheme Studio & Declarative Configuration Engine | *PENDING* | Dependent on 2B, 2C |
-| **Phase 2E** | Applicant Dynamic Application Flow & Checklist | *PENDING* | Dependent on 2C, 2D |
-| **Phase 2F** | Document Intelligence & Multilingual OCR Pipeline | *PENDING* | Dependent on 2B, 2E |
-| **Phase 2G** | Deterministic Rules & Verification Engine | *PENDING* | Dependent on 2D, 2F |
-| **Phase 2H** | Deficiency Management & Targeted Recheck Engine | *PENDING* | Dependent on 2E, 2G |
-| **Phase 2I** | Officer Case Review Workspace & Split-Screen Evidence | *PENDING* | Dependent on 2G, 2H |
-| **Phase 2J** | Operations Control Tower & Bottleneck Analytics | *PENDING* | Dependent on 2I |
-| **Phase 2K** | Post-Selection Management & Renewal Workflows | *PENDING* | Dependent on 2I |
-| **Phase 2L** | Integration Adapters & Security Hardening | *PENDING* | Dependent on 2I, 2J |
-| **Phase 2M** | End-to-End Testing, Seed Data & Demo Readiness | *PENDING* | Dependent on 2A–2L |
+| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                             |
+| :------------------- | :------------------------------------------------------------ | :------------ | :------------------------------------------------------------------------------ |
+| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                        |
+| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                  |
+| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier |
+| **Phase 2B**         | Database Schemas & Domain Models                              | _PENDING_     | Dependent on 2A                                                                 |
+| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | _PENDING_     | Dependent on 2B                                                                 |
+| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | _PENDING_     | Dependent on 2B, 2C                                                             |
+| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | _PENDING_     | Dependent on 2C, 2D                                                             |
+| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | _PENDING_     | Dependent on 2B, 2E                                                             |
+| **Phase 2G**         | Deterministic Rules & Verification Engine                     | _PENDING_     | Dependent on 2D, 2F                                                             |
+| **Phase 2H**         | Deficiency Management & Targeted Recheck Engine               | _PENDING_     | Dependent on 2E, 2G                                                             |
+| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | _PENDING_     | Dependent on 2G, 2H                                                             |
+| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | _PENDING_     | Dependent on 2I                                                                 |
+| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | _PENDING_     | Dependent on 2I                                                                 |
+| **Phase 2L**         | Integration Adapters & Security Hardening                     | _PENDING_     | Dependent on 2I, 2J                                                             |
+| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | _PENDING_     | Dependent on 2A–2L                                                              |
 
 ---
 
 ## Detailed Sub-Phase Specifications
 
 ### Phase 1: Problem Research & Architectural Blueprint
+
 - **Goal:** Analyze the scholarship/fellowship lifecycle for Scheduled Tribe applicants, study NFST and NOS scheme guidelines, and define an exception-driven case-orchestration platform.
 - **Status:** Completed prior to Phase 2.
 
 ---
 
 ### Phase 2 — Step 1: Project Context & Persistent Agent Memory
+
 - **Goal:** Establish a permanent, cross-agent context repository at root so different coding agents (Antigravity, Codex, etc.) can safely collaborate without context drift.
 - **Major Deliverables:** `.cursorrules`, `PRD.md`, `architecture.md`, `design.md`, `phases.md`, `current-state.md`, Git initialization.
 - **Status:** **COMPLETED** (Verified).
@@ -44,6 +46,7 @@
 ---
 
 ### Phase 2A: Engineering Foundation & Monorepo Tooling
+
 - **Goal:** Set up the core development environment, project directory structure, TypeScript strict configuration, locked package dependencies, linting/formatting standards, Vitest test runner, and Docker Compose for PostgreSQL.
 - **Major Features:**
   - Full-stack project structure using Next.js 14+ (App Router), React, and TypeScript Strict Mode.
@@ -58,11 +61,12 @@
   - `npm run test` executes a baseline test suite in Vitest.
   - Zero TypeScript compile or lint errors.
   - `docker-compose.yml` provides a reproducible PostgreSQL 15 service.
-- **Status:** *NOT STARTED*
+- **Status:** **COMPLETED** (Verified: Dev server, production build, Vitest 10/10 tests, ESLint, Prettier, Prisma push to PostgreSQL container on port 5433, all role routes returning 200).
 
 ---
 
 ### Phase 2B: Database Schemas & Domain Models (Prisma ORM)
+
 - **Goal:** Provision relational database models in PostgreSQL using Prisma ORM migrations to model the full case-management domain.
 - **Major Features:**
   - Prisma Schema (`prisma/schema.prisma`): `User`, `Role`, `Scheme`, `SchemeVersion`, `Application`, `CaseDossier`, `Document`, `ExtractedField`, `RuleResult`, `Deficiency`, `AuditLog`, `PostSelectionRecord`.
@@ -74,11 +78,12 @@
   - Database migrations apply cleanly.
   - Seed script verifies relational integrity across models.
   - Unit tests confirm schema constraints and relationships.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2C: Authentication & Role-Based Access Control (RBAC)
+
 - **Goal:** Implement secure authentication and server-side RBAC for the four primary system actors.
 - **Major Features:**
   - Role management: `APPLICANT`, `VERIFICATION_OFFICER`, `SCHEME_ADMIN`, `OPERATIONS_DIRECTOR`.
@@ -90,11 +95,12 @@
   - Users can register and log in according to their assigned role.
   - Unauthorized access to officer or admin routes is strictly blocked with HTTP 403.
   - Automated tests verify RBAC boundary enforcement.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2D: Scheme Studio & Declarative Configuration Engine
+
 - **Goal:** Enable declarative creation, editing, and versioning of scholarship schemes without hardcoded code changes.
 - **Major Features:**
   - Declarative JSON schema models for **NFST** and **NOS**.
@@ -105,11 +111,12 @@
 - **Acceptance Criteria:**
   - Scheme definitions for NFST and NOS stored and retrieved from the database.
   - Schema updates generate new version records while preserving active application states.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2E: Applicant Dynamic Application Flow & Checklist
+
 - **Goal:** Provide a seamless, dynamic application journey for ST students applying for NFST or NOS.
 - **Major Features:**
   - Scheme comparison cards and 3-question eligibility pre-screener.
@@ -121,11 +128,12 @@
 - **Acceptance Criteria:**
   - An applicant can select NFST or NOS, fill in all dynamic fields, upload required certificates, and submit.
   - Case state transitions to `SUBMITTED` with a generated Case ID and audit log entry.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2F: Document Intelligence & Multilingual OCR Pipeline
+
 - **Goal:** Automate document classification, text extraction, key-value normalization, and cross-document consistency checks.
 - **Major Features:**
   - Document classifier identifying certificate types.
@@ -137,11 +145,12 @@
   - Uploaded sample certificates are accurately classified.
   - Extracted fields return structured JSON with page coordinates and confidence scores.
   - Cross-document discrepancies (e.g., minor name spelling differences) are flagged as review items, not fraud.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2G: Deterministic Rules & Verification Engine
+
 - **Goal:** Build the rule evaluation engine that checks deterministic eligibility criteria against extracted evidence and form data.
 - **Major Features:**
   - Rule evaluation for age limits (with ST relaxation), income ceilings (≤ ₹8 Lakhs for NOS), minimum percentage, caste certificate authenticity indicators.
@@ -151,11 +160,12 @@
 - **Acceptance Criteria:**
   - Engine evaluates an application and outputs structured findings (Pass, Deficient, Ambiguous).
   - Evidence cards store coordinates for visual rendering in the officer workspace.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2H: Deficiency Management & Targeted Recheck Engine
+
 - **Goal:** Implement the complete `Detect → Explain → Correct → Recheck → Resolve` innovation loop.
 - **Major Features:**
   - Structured deficiency issuance with clear explanations and deadlines.
@@ -166,11 +176,12 @@
 - **Acceptance Criteria:**
   - Deficiencies issued by rules or officers appear with clear explainability on the applicant portal.
   - Applicant can resubmit the specific document; system re-evaluates only that document and updates case state.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2I: Officer Case Review Workspace & Split-Screen Evidence
+
 - **Goal:** Deliver an ergonomic, high-throughput case review console for verification officers.
 - **Major Features:**
   - Prioritized worklist sorted by SLA urgency and scheme.
@@ -181,11 +192,12 @@
 - **Acceptance Criteria:**
   - Officer can inspect evidence bounding boxes over actual uploaded documents.
   - Officer can record official decisions with state transitions and immutable audit logs.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2J: Operations Control Tower & Bottleneck Analytics
+
 - **Goal:** Provide senior leadership with complete operational observability over scheme health and processing pipelines.
 - **Major Features:**
   - High-level KPI summary cards (applications, clearance rate, average TAT, active deficiencies).
@@ -196,11 +208,12 @@
 - **Acceptance Criteria:**
   - Control Tower aggregates live database metrics into clear, responsive charts and tables.
   - Bottlenecks and recurring deficiency patterns are immediately identifiable.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2K: Post-Selection Management & Renewal Workflows
+
 - **Goal:** Support selected scholars through multi-year fellowship tracking and renewals.
 - **Major Features:**
   - Selected scholar master registry for NFST and NOS awardees.
@@ -211,11 +224,12 @@
 - **Acceptance Criteria:**
   - Selected applicant transitions into a verified Scholar record.
   - Scholar can upload progress reports; officers can approve fellowship continuation.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2L: Integration Adapters & Security Hardening
+
 - **Goal:** Implement robust adapter interfaces for external government systems and enforce production-grade security standards.
 - **Major Features:**
   - DigiLocker adapter (mocked with realistic document verification payloads).
@@ -227,11 +241,12 @@
 - **Acceptance Criteria:**
   - External adapters return realistic synthetic verification/disbursement states without breaking when offline.
   - Security audit passes without high-severity vulnerabilities.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_
 
 ---
 
 ### Phase 2M: End-to-End Testing, Seed Data & Demo Readiness
+
 - **Goal:** Polish the system with realistic synthetic ST applicant personas, execute end-to-end tests, and prepare seamless hackathon demonstration flows.
 - **Major Features:**
   - Comprehensive synthetic dataset with realistic ST applicant personas for NFST and NOS (compliant, deficient, edge-case personas).
@@ -242,4 +257,4 @@
 - **Acceptance Criteria:**
   - All automated tests pass cleanly.
   - A complete demo journey from application to approval and post-selection executes smoothly in under 5 minutes.
-- **Status:** *NOT STARTED*
+- **Status:** _NOT STARTED_

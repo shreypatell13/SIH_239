@@ -1,0 +1,35 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  APPLICANT
+  OFFICER
+  ADMIN
+  MANAGEMENT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(APPLICANT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model SystemHealth {
+  id        String   @id @default(uuid())
+  checkName String
+  status    String
+  checkedAt DateTime @default(now())
+
+  @@map("system_health")
+}
