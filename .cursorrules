@@ -1,0 +1,39 @@
+# ==============================================================================
+# TribalScholar AI — Permanent Coding Agent Rules (.cursorrules)
+# SIH Problem Statement 26239: AI-Enabled Scholarship and Fellowship Management System for Scheduled Tribes
+# ==============================================================================
+
+## 1. MANDATORY CONTEXT FIRST
+Before undertaking any implementation, architectural modification, or significant task, every agent MUST inspect and read the persistent project context files at repository root:
+- PRD.md (Product source of truth, core thesis, lifecycles, and feature boundaries)
+- architecture.md (System design, component boundaries, data flow, and tech stack)
+- design.md (UI/UX design principles, user journeys, role workflows, explainable status)
+- phases.md (Development roadmap, sub-phase breakdown, acceptance criteria)
+- current-state.md (Live project state, last verified status, blockers, exact next step)
+- .cursorrules (This ruleset)
+
+Never proceed on unverified assumptions or hallucinated project context.
+
+## 2. CORE ARCHITECTURAL & PRODUCT PRINCIPLES
+- Case-Centric Architecture: Applications are managed as living, orchestrated cases with a complete timeline, evidence cards, and audit logs.
+- Configurable Scheme Logic: Never hardcode scheme criteria (eligibility, income ceilings, age limits, required documents, workflow stages) into application logic. Use declarative configurations (Scheme Studio / JSON schema configs).
+- Assistive AI, Human-in-the-Loop (HITL): AI is strictly assistive. It classifies, extracts, checks consistency, generates summaries, and flags potential deficiencies. All consequential decisions (approvals, rejections, sanctions, disbursements) require authoritative human review and officer sign-off.
+- Discrepancy ≠ Fraud: Potential document inconsistencies or extraction mismatches must be classified as discrepancies, ambiguities, or deficiencies for resolution, NEVER automatically flagged as fraud or intentional malice.
+- Explainable Case Status: Never display opaque status strings (e.g., bare "Rejected" or "Deficient"). Always provide structured status: [Stage] + [State] + [Blocker] + [Responsible Actor] + [Next Action].
+- Adapter Pattern for External Systems: Do not claim real integrations with government portals (e.g., PFMS, DigiLocker, NSP, Academic Bank of Credits) unless live, authorized APIs are connected and verified. Always use well-defined adapter interfaces with mock/synthetic implementations for demonstration.
+- Synthetic Data Only: Use realistic synthetic test data for Scheduled Tribe applicants and documents. Never store or commit real Personally Identifiable Information (PII) or unauthorized data.
+
+## 3. ENGINEERING & IMPLEMENTATION RULES
+- Inspect Before Editing: Always inspect the file, surrounding code, existing tests, and dependent modules before modifying code.
+- Preserve Existing Functionality: Do not break existing features, regressions, or working implementations. Refactor with intent, not convenience.
+- Prefer Focused Changes Over Giant Rewrites: Make surgical, verifiable modifications. Avoid replacing entire files when localized changes suffice.
+- Modular & Decoupled Design: Maintain clear separation of concerns among the API gateway, workflow engine, rules engine, document intelligence service, and storage layers.
+- Strict Input Validation: Validate all input data at boundaries (runtime validation using schemas like Zod, Pydantic, or JSONSchema) on both client and server sides.
+- Server-Side Authorization Enforcement: Never rely on client-side role checks alone. Enforce Role-Based Access Control (RBAC: Applicant, Verification Officer, Scheme Admin, Operations Management) strictly on every server-side endpoint.
+- Secure Credentials & Secrets: Never commit secrets, API keys, private certificates, or environment credentials. Use `.env` templates (`.env.example`) and environment variable injection.
+- Meaningful Automated Testing: Write unit, integration, and verification tests for critical business logic, rule evaluations, and document workflows. Do not mark tasks done without running tests.
+- Grounding & Truthfulness: Never invent features, mock metrics, fake test results, or unsupported claims. Report actual status, actual test outputs, and actual limitations honestly.
+
+## 4. WORKFLOW & CONTINUITY DISCIPLINE
+- Update Documentation: Keep `current-state.md` updated after meaningful changes (working features, blockers, tests run, exact next step). Keep `phases.md` updated as sub-phases reach verified acceptance criteria.
+- Bounded Execution: Do not start the next development phase automatically after finishing a requested task. Complete the requested scope, verify, commit if appropriate, update documentation, and report the recommended next step to the user for approval.
