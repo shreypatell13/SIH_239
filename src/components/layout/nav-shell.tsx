@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldCheck, User, Users, Settings, Activity } from "lucide-react";
+import { ShieldCheck, User, Settings, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { SessionNavUser } from "@/components/auth/session-nav-user";
 
 export function NavShell() {
   const pathname = usePathname();
@@ -28,13 +29,13 @@ export function NavShell() {
           <div className="flex items-center space-x-2">
             <span className="font-semibold tracking-wider text-amber-400">SIH 26239</span>
             <span>|</span>
-            <span>Ministry of Tribal Affairs — Scholarship & Fellowship Orchestration</span>
+            <span>Ministry of Tribal Affairs — Scholarship &amp; Fellowship Orchestration</span>
           </div>
           <div className="flex items-center space-x-3">
             <Badge variant="outline" className="border-amber-400/40 text-amber-300">
-              Phase 2A Foundation
+              Phase 2C RBAC Active
             </Badge>
-            <span className="text-slate-400">Demo Persona Active</span>
+            <span className="text-slate-400">NextAuth &bull; JWT Session</span>
           </div>
         </div>
       </div>
@@ -73,15 +74,17 @@ export function NavShell() {
           })}
         </nav>
 
-        {/* System Health Link */}
-        <div className="flex items-center space-x-2">
+        {/* Live User Session & Health Link */}
+        <div className="flex items-center space-x-3">
+          <SessionNavUser />
+
           <Link
             href="/api/health"
             target="_blank"
-            className="flex items-center space-x-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 hover:bg-emerald-100"
+            className="hidden items-center space-x-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 hover:bg-emerald-100 sm:flex"
           >
             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-            <span>API Health</span>
+            <span>Health</span>
           </Link>
         </div>
       </div>

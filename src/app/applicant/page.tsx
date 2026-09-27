@@ -1,8 +1,11 @@
-import { User, FileText, CheckCircle2, AlertTriangle } from "lucide-react";
+import { User, FileText, AlertTriangle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getServerAuthUser } from "@/server/auth/session";
 
-export default function ApplicantPortalPage() {
+export default async function ApplicantPortalPage() {
+  const user = await getServerAuthUser();
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center justify-between">
@@ -15,7 +18,9 @@ export default function ApplicantPortalPage() {
             Self-service scholarship journey for Scheduled Tribe candidates.
           </p>
         </div>
-        <Badge variant="success">Active Demo Persona: Ramesh Kumar Meena</Badge>
+        <Badge variant="success">
+          {user ? `Active User: ${user.name}` : "Active Demo Persona: Ramesh Kumar Meena"}
+        </Badge>
       </div>
 
       {/* Explainable Case Status Foundation Card */}

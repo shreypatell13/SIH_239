@@ -1,8 +1,11 @@
-import { Activity, TrendingUp, AlertCircle, Users } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getServerAuthUser } from "@/server/auth/session";
 
-export default function ManagementControlTowerPage() {
+export default async function ManagementControlTowerPage() {
+  const user = await getServerAuthUser();
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center justify-between">
@@ -18,7 +21,9 @@ export default function ManagementControlTowerPage() {
             deficiency intelligence.
           </p>
         </div>
-        <Badge variant="success">Active Demo Director: Dr. Sunita Rao</Badge>
+        <Badge variant="success">
+          {user ? `Active Director: ${user.name}` : "Active Demo Director: Dr. Sunita Rao"}
+        </Badge>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">

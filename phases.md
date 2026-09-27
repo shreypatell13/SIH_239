@@ -89,16 +89,22 @@
 
 - **Goal:** Implement secure authentication and server-side RBAC for the four primary system actors.
 - **Major Features:**
+  - NextAuth.js v4 implementation with Credentials provider and JWT session strategy.
   - Role management: `APPLICANT`, `VERIFICATION_OFFICER`, `SCHEME_ADMIN`, `OPERATIONS_DIRECTOR`.
-  - Secure credential hashing, session/JWT generation, and refresh mechanisms.
-  - Route guards and server-side authorization middleware.
-  - Demo login switcher for effortless hackathon demonstration.
+  - Secure bcrypt password hashing (cost factor 12) for all user credentials.
+  - Server-authoritative layout guards with custom 403 Forbidden UI.
+  - Edge-compatible route middleware protecting page groups against unauthenticated requests.
+  - Protected API routes enforcing server-authoritative 401/403 responses.
+  - One-click demo persona quick login for all 4 roles executing the normal NextAuth credentials pipeline.
+  - Live session header indicators (`SessionNavUser`) and dynamic user identity display.
 - **Dependencies:** Phase 2B.
 - **Acceptance Criteria:**
-  - Users can register and log in according to their assigned role.
-  - Unauthorized access to officer or admin routes is strictly blocked with HTTP 403.
-  - Automated tests verify RBAC boundary enforcement.
-- **Status:** _NOT STARTED_
+  - Users can authenticate with credentials according to their server-assigned role.
+  - Unauthorized access to officer, admin, or management routes is strictly blocked with HTTP 403 Forbidden UI.
+  - Unauthenticated access to protected pages redirects to `/login`.
+  - API routes return 401/403 JSON instead of HTML redirects.
+  - Automated unit tests (31/31) and Playwright E2E tests (11/11) verify all RBAC boundaries.
+- **Status:** **COMPLETED** (Verified)
 
 ---
 

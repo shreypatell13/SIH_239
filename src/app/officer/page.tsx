@@ -1,8 +1,11 @@
-import { ShieldCheck, Eye, ListFilter } from "lucide-react";
+import { ShieldCheck, Eye } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getServerAuthUser } from "@/server/auth/session";
 
-export default function OfficerWorkspacePage() {
+export default async function OfficerWorkspacePage() {
+  const user = await getServerAuthUser();
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center justify-between">
@@ -17,7 +20,9 @@ export default function OfficerWorkspacePage() {
             Split-screen verification, evidence inspection, and human-in-the-loop decision desk.
           </p>
         </div>
-        <Badge variant="success">Active Demo Officer: Priya Sharma</Badge>
+        <Badge variant="success">
+          {user ? `Active Officer: ${user.name}` : "Active Demo Officer: Priya Sharma"}
+        </Badge>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

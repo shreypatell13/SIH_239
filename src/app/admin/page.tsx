@@ -1,8 +1,11 @@
-import { Settings, Sliders, Layers } from "lucide-react";
+import { Sliders, Layers } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getServerAuthUser } from "@/server/auth/session";
 
-export default function AdminSchemeStudioPage() {
+export default async function AdminSchemeStudioPage() {
+  const user = await getServerAuthUser();
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center justify-between">
@@ -16,7 +19,9 @@ export default function AdminSchemeStudioPage() {
             configuration.
           </p>
         </div>
-        <Badge variant="success">Active Demo Admin: Rajesh Verma</Badge>
+        <Badge variant="success">
+          {user ? `Active Admin: ${user.name}` : "Active Demo Admin: Rajesh Verma"}
+        </Badge>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

@@ -1,4 +1,5 @@
 import { PrismaClient, UserRole } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -20,44 +21,51 @@ async function main() {
   });
 
   // ==========================================
-  // 2. DEMO USERS & PERSONAS
+  // 2. DEMO USERS & PERSONAS (Real bcrypt hashes, cost factor 12)
   // ==========================================
+  // Pre-computed or generated bcrypt hashes with cost factor 12
   const demoUsers = [
     {
       id: "usr_demo_applicant_001",
       email: "ramesh.meena@example.tribal.gov.in",
       name: "Ramesh Kumar Meena (Applicant)",
       role: "APPLICANT" as UserRole,
+      password: "Demo@Applicant2026",
     },
     {
       id: "usr_demo_officer_001",
       email: "priya.sharma@tribal.gov.in",
       name: "Priya Sharma (Verification Officer)",
       role: "VERIFICATION_OFFICER" as UserRole,
+      password: "Demo@Officer2026",
     },
     {
       id: "usr_demo_admin_001",
       email: "rajesh.verma@tribal.gov.in",
       name: "Rajesh Verma (Scheme Administrator)",
       role: "SCHEME_ADMIN" as UserRole,
+      password: "Demo@Admin2026",
     },
     {
       id: "usr_demo_management_001",
       email: "sunita.rao@tribal.gov.in",
       name: "Dr. Sunita Rao (Operations Director)",
       role: "OPERATIONS_DIRECTOR" as UserRole,
+      password: "Demo@Director2026",
     },
   ];
 
   for (const u of demoUsers) {
+    const passwordHash = bcrypt.hashSync(u.password, 12);
     await prisma.user.upsert({
       where: { email: u.email },
-      update: { name: u.name, role: u.role, isActive: true },
+      update: { name: u.name, role: u.role, passwordHash, isActive: true },
       create: {
         id: u.id,
         email: u.email,
         name: u.name,
         role: u.role,
+        passwordHash,
         isActive: true,
       },
     });
