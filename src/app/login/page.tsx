@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -73,7 +73,7 @@ const DEMO_PERSONAS = [
   },
 ];
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -127,7 +127,7 @@ export default function LoginPage() {
     <div className="mx-auto max-w-5xl space-y-8 py-4">
       {/* Header */}
       <div className="space-y-2 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 shadow-sm">
+        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 shadow-xs">
           <ShieldCheck className="h-3.5 w-3.5 text-gov-saffron" />
           <span>Server-Authoritative Authentication &amp; RBAC</span>
         </div>
@@ -142,7 +142,7 @@ export default function LoginPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Standard Credentials Form */}
         <div className="lg:col-span-5">
-          <Card className="border-slate-200 shadow-sm">
+          <Card className="border-slate-200 shadow-xs">
             <CardHeader>
               <CardTitle className="text-lg">Credentials Login</CardTitle>
               <CardDescription className="text-xs">
@@ -236,7 +236,7 @@ export default function LoginPage() {
               return (
                 <Card
                   key={persona.role}
-                  className="flex flex-col justify-between border-slate-200 transition-all hover:border-gov-saffron hover:shadow-sm"
+                  className="flex flex-col justify-between border-slate-200 transition-all hover:border-gov-saffron hover:shadow-xs"
                 >
                   <CardHeader className="p-4 pb-2">
                     <div className="flex items-center justify-between">
@@ -275,5 +275,22 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <Loader2 className="h-5 w-5 animate-spin text-gov-slate" />
+            <span>Loading login portal...</span>
+          </div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
