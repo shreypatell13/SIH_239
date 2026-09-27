@@ -9,7 +9,7 @@
 - **Current sub-phase:** Phase 2A (Engineering Foundation & Monorepo Tooling)
 - **Current task:** Final Tech Stack & Architecture Lock
 - **Status:** Architecture & Tech Stack Locked (Prisma ORM, Next.js App Router, TypeScript, Vitest, Tailwind CSS, Docker Compose); Ready for Phase 2A scaffolding approval
-- **Last stable commit:** `a95d3c5` ("docs: update current-state with baseline commit hash")
+- **Last stable commit:** `c1574e3` ("phase-2a: lock tech stack and architecture")
 - **Last completed work:** Finalized and documented exact, unambiguous 15-part technology stack in architecture.md, synchronized phases.md and current-state.md
 - **Current working features:** Persistent cross-agent documentation, governance rules, and locked technical architecture
 - **Current blockers:** None
