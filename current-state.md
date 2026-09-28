@@ -6,43 +6,52 @@
 ---
 
 - **Current phase:** Phase 2 (Actual Engineering)
-- **Current sub-phase:** Phase 2G (Deterministic Eligibility & Evidence Verification Engine)
-- **Current task:** Verification, testing, and documentation finalized for Phase 2G
-- **Status:** Phase 2G COMPLETED & FULLY VERIFIED; Ready for Phase 2H
-- **Last stable commit:** Pending commit for Phase 2G
+- **Current sub-phase:** Phase 2H (Deficiency Management & Targeted Recheck Engine)
+- **Current task:** Verification, testing, and documentation finalized for Phase 2H
+- **Status:** Phase 2H COMPLETED & FULLY VERIFIED; Ready for Phase 2I
+- **Last stable commit:** Pending commit for Phase 2H
 - **Last completed work:**
-  - **Deterministic Eligibility Engine Domain (`src/server/domain/eligibility/`)**:
-    - `operators.ts`: Pure, deterministic evaluation of all 11 DSL operators (`EQUALS`, `NOT_EQUALS`, `LESS_THAN`, `LESS_THAN_OR_EQUALS`, `GREATER_THAN`, `GREATER_THAN_OR_EQUALS`, `IN`, `NOT_IN`, `MATCHES_REGEX`, `IS_PRESENT`, `WITHIN_MONTHS`) with safe numeric/date parsing and explainable failure templates (`{computedValue}`, `{expectedValue}`, `{threshold}`).
-    - `operators.ts`: ST category relaxation support (`stRelaxation.addToThreshold`) automatically applied to standard thresholds (e.g. +5 years for ST age limit) with explainable reasoning badges.
-    - `input-resolver.ts`: Deterministic resolver for `FORM_DATA`, `EXTRACTED_FIELD` (across latest dossier documents), and `COMPUTED` fields (e.g. exact age in years from date of birth relative to application date, qualifying scores, ST assertions).
-    - `ambiguity.ts`: Strict adherence to the non-negotiable principle that **low confidence is NOT a failure**. Extractions with `confidenceScore < 0.50`, degraded documents in `REVIEW_REQUIRED` / `FAILED` state, or conflicting extractions evaluate to `RuleOutcome.AMBIGUOUS` (never `FAIL`).
-    - `consistency-engine.ts`: Cross-document consistency comparator with NFKC Unicode normalization, honorific stripping (Mr., Ms., Shri, Smt., Dr., Kumari, etc.), whitespace collapse, and Levenshtein token similarity for applicant names, annual income tolerances, ST category verification, and passport number matching.
-  - **Rule Result Repository & Service Layer (`src/server/repositories/`, `src/server/services/`)**:
-    - `rule-result.repository.ts`: Batch creates `RuleResult` entities grouped by unique `runId`, retrieves latest evaluation runs for case dossiers, and tracks evaluation pass histories.
-    - `eligibility-engine.service.ts`:
-      - Evaluates applications deterministically against their strictly pinned `SchemeVersion.eligibilityRules` DSL without generative AI, eval(), or dynamic SQL.
-      - Produces high-level system assessments (`ELIGIBLE_ASSESSED`, `NOT_ELIGIBLE_ASSESSED`, `REVIEW_REQUIRED`) without autonomously deciding final application status or creating deficiencies (owned exclusively by Phase 2H).
-      - Enforces server-side RBAC: `VERIFICATION_OFFICER`, `SCHEME_ADMIN`, `OPERATIONS_DIRECTOR`, and `SYSTEM` background execution.
-      - Writes immutable audit log entries (`ELIGIBILITY_EVALUATION_COMPLETED`) with detailed summary payloads.
-  - **API Endpoints (`src/app/api/officer/applications/[id]/`)**:
-    - `POST /api/officer/applications/[id]/evaluate`: Authenticated officer trigger endpoint to execute deterministic rule evaluation.
-    - `GET /api/officer/applications/[id]/eligibility`: Authenticated endpoint to retrieve latest evaluation run, rule breakdowns, and consistency results.
-  - **Interactive Explainable UI (`src/components/officer/eligibility-assessment-card.tsx`)**:
-    - Renders assessment status badges (`ELIGIBLE_ASSESSED`, `NOT_ELIGIBLE_ASSESSED`, `REVIEW_REQUIRED`), KPI metric counts, pinned scheme version metadata, interactive re-evaluate trigger, rule-by-rule explainable table, and cross-document consistency verification matrix.
+  - **Prisma Schema & Migration (`prisma/schema.prisma`)**:
+    - Enhanced `Deficiency` model with `applicantResponseText` and `applicantRespondedAt` timestamp.
+    - Applied migration `20260928153002_phase_2h_deficiency_workflow`.
+  - **Deficiency Domain & Policies (`src/server/domain/deficiency/`)**:
+    - `types.ts`: DTOs (`ApplicantDeficiencyDTO`, `OfficerDeficiencyDTO`, `DeficiencySummaryDTO`, `RemedyAction`).
+    - `explanation.ts`: Plain-English, respectful explanation and title generator for all `DeficiencyType`s without technical jargon or accusatory language.
+    - `policy.ts`: State machine transition validator (`isValidDeficiencyTransition`), response deadline calculator (`calculateResponseDeadline`), expiry check, and deterministic resolution evaluator (`evaluateDeficiencyResolution`).
+    - `index.ts`: Barrel export.
+  - **Repository & Service Layer (`src/server/repositories/`, `src/server/services/`)**:
+    - `deficiency.repository.ts`: Full CRUD, deduplication query (`findOpenExisting`), response recording, and metric counts.
+    - `deficiency.service.ts`:
+      - `issueDeficiency`: Creates non-duplicate, explainable deficiencies, transitions `CaseDossier` to `DEFICIENCY_PENDING` / `ACTION_REQUIRED`, logs `DEFICIENCY_ISSUED`.
+      - `detectAndCreateDeficiencies`: Converts Phase 2F/2G findings into actionable candidate deficiencies.
+      - `listApplicantDeficiencies` & `getApplicantDeficiency`: Sanitized DTO views with strict applicant ownership validation.
+      - `respondToDeficiency`: Records applicant remedy/clarification, transitions `CaseDossier` to `IN_PROGRESS`, triggers targeted recheck.
+      - `executeTargetedRecheck`: Synchronously executes Phase 2F processing on replacement documents, evaluates affected Phase 2G eligibility rules via system actor, determines resolution, transitions `CaseDossier` back to `OFFICER_REVIEW` if all open deficiencies are resolved.
+      - `officerResolveOrWaive`: Officer manual resolution / waiver / reopening with mandatory remark validation and audit logging.
+      - `getDeficiencySummary`: Summary KPIs for applicant/officer views.
+  - **API Endpoints (`src/app/api/`)**:
+    - `GET` / `POST` `/api/applicant/applications/[id]/deficiencies`
+    - `GET` `/api/applicant/applications/[id]/deficiencies/[deficiencyId]`
+    - `POST` `/api/applicant/applications/[id]/deficiencies/[deficiencyId]/respond`
+    - `GET` / `POST` `/api/officer/applications/[id]/deficiencies`
+    - `PATCH` `/api/officer/deficiencies/[deficiencyId]`
+    - `POST` `/api/officer/deficiencies/[deficiencyId]/recheck`
+  - **Frontend UI Components & Pages (`src/components/application/`, `src/app/applicant/`)**:
+    - `deficiency-resolution-card.tsx`: Interactive card with remedy actions, deadlines, written clarification input, replacement upload links, targeted recheck status indicators, and resolved history.
+    - `src/app/applicant/applications/[id]/deficiencies/page.tsx`: Dedicated remediation page.
+    - `explainable-case-status.tsx`: Integrated action button/link to `/applicant/applications/[id]/deficiencies` when blockers or deficiencies exist.
   - **Automated Verification**:
-    - Vitest: **104/104 unit tests passing** across 11 test suites (`eligibility-engine.test.ts`, `document-intelligence.test.ts`, `applicant-flow.test.ts`, `scheme-studio.test.ts`, `auth.test.ts`, `domain.test.ts`, `ocr-provider.test.ts`, `rbac.test.ts`, `rules.test.ts`, `storage.test.ts`, `utils.test.ts`).
-    - Playwright: **37/37 E2E tests passing** across 5 test suites (`eligibility-engine.spec.ts`, `document-intelligence.spec.ts`, `applicant-flow.spec.ts`, `auth-rbac.spec.ts`, `foundation.spec.ts`, `scheme-studio.spec.ts`).
+    - Vitest: **120/120 unit tests passing** across 12 test suites (`deficiency.test.ts`, `eligibility-engine.test.ts`, `document-intelligence.test.ts`, `applicant-flow.test.ts`, `scheme-studio.test.ts`, `auth.test.ts`, `domain.test.ts`, `ocr-provider.test.ts`, `rbac.test.ts`, `rules.test.ts`, `storage.test.ts`, `utils.test.ts`).
+    - Playwright: **43/43 E2E tests passing** across 6 test suites (`deficiency.spec.ts`, `eligibility-engine.spec.ts`, `document-intelligence.spec.ts`, `applicant-flow.spec.ts`, `auth-rbac.spec.ts`, `foundation.spec.ts`, `scheme-studio.spec.ts`).
     - Next.js build: **22/22 routes built cleanly**.
     - Type check: **0 TypeScript errors**.
     - ESLint: **0 warnings or errors**.
     - Prettier: **All files formatted**.
 - **Current working features:**
-  - Deterministic evaluation of SchemeVersion eligibility rules DSL without AI/probabilistic execution.
-  - Pinned scheme version rule enforcement.
-  - ST category threshold relaxation engine.
-  - Low confidence and degraded document ambiguity routing.
-  - Cross-document applicant name, income, caste, and passport consistency checks.
-  - Interactive officer evaluation card with explainable rule metrics and evidence provenance.
+  - Complete `Detect → Explain → Correct → Recheck → Resolve` innovation loop.
+  - Plain-English, empathetic deficiency explanations without punitive wording.
+  - Targeted rechecks isolating only replacement documents and affected rules.
+  - Deterministic evaluation of SchemeVersion eligibility rules DSL (Phase 2G).
   - Document intelligence and multilingual OCR pipeline (Phase 2F).
   - Applicant dynamic form wizard, checklist, and readiness engine (Phase 2E).
   - Scheme Studio & Declarative Configuration Engine (Phase 2D).

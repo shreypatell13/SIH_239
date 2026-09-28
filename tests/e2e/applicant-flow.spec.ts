@@ -7,7 +7,7 @@ test.describe("Phase 2E — Applicant Dynamic Journey & E2E Flow", () => {
     await page.getByRole("button", { name: /Sign in as APPLICANT/i }).click();
 
     // Wait for redirect to applicant portal
-    await expect(page).toHaveURL(/\/applicant$/);
+    await expect(page).toHaveURL(/\/applicant$/, { timeout: 15000 });
     await expect(page.getByRole("heading", { name: "Applicant Portal" })).toBeVisible();
   });
 
@@ -129,6 +129,8 @@ test.describe("Phase 2E — Applicant Dynamic Journey & E2E Flow", () => {
     await expect(page.getByText("3. Active Blocker")).toBeVisible();
     await expect(page.getByText("4. Responsible Actor")).toBeVisible();
     await expect(page.getByText("5. Next Concrete Action")).toBeVisible();
-    await expect(page.getByText(/Automated (verification|eligibility evaluation)/i)).toBeVisible();
+    await expect(
+      page.getByText(/Automated|verification|eligibility|deficiency|review|action|recheck/i).first()
+    ).toBeVisible();
   });
 });

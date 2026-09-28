@@ -293,7 +293,7 @@ export class EligibilityEngineService {
       data: {
         caseDossierId: caseDossier.id,
         actorId: actor?.id || null,
-        actorRole: (actor?.role as UserRole) || null,
+        actorRole: actor && actor.role !== "SYSTEM" ? (actor.role as UserRole) : null,
         actionType: "ELIGIBILITY_EVALUATION_COMPLETED",
         payload: {
           runId,

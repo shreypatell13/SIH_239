@@ -255,6 +255,21 @@ export function ExplainableCaseStatus({ applicationId }: ExplainableCaseStatusPr
                     Target Response Deadline: {new Date(status.deadline).toLocaleString("en-IN")}
                   </p>
                 )}
+                {(status.blocker ||
+                  status.stage === "DEFICIENCY_PENDING" ||
+                  status.state === "ACTION_REQUIRED") && (
+                  <div className="mt-3">
+                    <Link href={`/applicant/applications/${applicationId}/deficiencies`}>
+                      <Button
+                        size="sm"
+                        className="gap-1.5 bg-amber-600 text-xs text-white hover:bg-amber-700"
+                      >
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        View &amp; Resolve Deficiencies
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>

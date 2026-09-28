@@ -372,6 +372,8 @@ model Deficiency {
   recheckStatus           RecheckStatus?
   recheckAt               DateTime?
   officerResolutionRemark String?
+  applicantResponseText   String?
+  applicantRespondedAt    DateTime?
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
   resolutionDocuments     Document[]        @relation("DeficiencyResolvingDocument")
