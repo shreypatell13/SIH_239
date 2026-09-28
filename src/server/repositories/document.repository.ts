@@ -75,6 +75,12 @@ export class DocumentRepository {
       });
     });
   }
+
+  async delete(id: string): Promise<Document> {
+    return prisma.document.delete({
+      where: { id },
+    });
+  }
 }
 
 export const documentRepository = new DocumentRepository();

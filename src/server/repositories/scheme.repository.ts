@@ -37,18 +37,18 @@ export class SchemeRepository {
     });
   }
 
-  async getActiveVersion(schemeCode: string): Promise<SchemeVersion | null> {
-    const scheme = await prisma.scheme.findUnique({
-      where: { code: schemeCode },
-      include: {
-        versions: {
-          where: { isActive: true },
-          take: 1,
-          orderBy: { versionNumber: "desc" },
-        },
+  async getActiveVersion(schemeCode: string): Promise<(SchemeVersion & { scheme: Scheme }) | null> {
+    const version = await prisma.schemeVersion.findFirst({
+      where: {
+        scheme: { code: schemeCode },
+        isActive: true,
       },
+      include: {
+        scheme: true,
+      },
+      orderBy: { versionNumber: "desc" },
     });
-    return scheme?.versions[0] ?? null;
+    return version;
   }
 
   async findVersionById(versionId: string): Promise<

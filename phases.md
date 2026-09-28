@@ -8,23 +8,23 @@
 
 ## Roadmap Overview & Progress Matrix
 
-| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                             |
-| :------------------- | :------------------------------------------------------------ | :------------ | :------------------------------------------------------------------------------ |
-| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                        |
-| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                  |
-| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier |
-| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)      |
-| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | _PENDING_     | Dependent on 2B                                                                 |
+| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                                                                 |
+| :------------------- | :------------------------------------------------------------ | :------------ | :------------------------------------------------------------------------------------------------------------------ |
+| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                                                            |
+| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                                                      |
+| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier                                     |
+| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)                                          |
+| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | **COMPLETED** | Verified: NextAuth v4 credentials, server-authoritative RBAC, unit (31/31), E2E (11/11)                             |
 | **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | **COMPLETED** | Verified: Typed DSLs, Zod & Semantic validators, Scheme Studio UI, supersession, Vitest (52/52), Playwright (21/21) |
-| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | _PENDING_     | Dependent on 2C, 2D                                                             |
-| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | _PENDING_     | Dependent on 2B, 2E                                                             |
-| **Phase 2G**         | Deterministic Rules & Verification Engine                     | _PENDING_     | Dependent on 2D, 2F                                                             |
-| **Phase 2H**         | Deficiency Management & Targeted Recheck Engine               | _PENDING_     | Dependent on 2E, 2G                                                             |
-| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | _PENDING_     | Dependent on 2G, 2H                                                             |
-| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | _PENDING_     | Dependent on 2I                                                                 |
-| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | _PENDING_     | Dependent on 2I                                                                 |
-| **Phase 2L**         | Integration Adapters & Security Hardening                     | _PENDING_     | Dependent on 2I, 2J                                                             |
-| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | _PENDING_     | Dependent on 2A–2L                                                              |
+| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | **COMPLETED** | Verified: Dynamic form wizard, document checklist, readiness engine, early dossier, Vitest (65/65), Playwright (26/26)|
+| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | _PENDING_     | Dependent on 2B, 2E                                                                                                 |
+| **Phase 2G**         | Deterministic Rules & Verification Engine                     | _PENDING_     | Dependent on 2D, 2F                                                                                                 |
+| **Phase 2H**         | Deficiency Management & Targeted Recheck Engine               | _PENDING_     | Dependent on 2E, 2G                                                                                                 |
+| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | _PENDING_     | Dependent on 2G, 2H                                                                                                 |
+| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | _PENDING_     | Dependent on 2I                                                                                                     |
+| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | _PENDING_     | Dependent on 2I                                                                                                     |
+| **Phase 2L**         | Integration Adapters & Security Hardening                     | _PENDING_     | Dependent on 2I, 2J                                                                                                 |
+| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | _PENDING_     | Dependent on 2A–2L                                                                                                  |
 
 ---
 
@@ -128,18 +128,23 @@
 
 ### Phase 2E: Applicant Dynamic Application Flow & Checklist
 
-- **Goal:** Provide a seamless, dynamic application journey for ST students applying for NFST or NOS.
+- **Goal:** Provide a seamless, dynamic application journey for ST students applying for NFST or NOS with early dossier linkage and explainable status tracking.
 - **Major Features:**
-  - Scheme comparison cards and 3-question eligibility pre-screener.
-  - Dynamic form wizard rendered from scheme JSON schema.
-  - Document checklist with drag-and-drop upload and client-side pre-flight checks.
-  - Readiness indicator score summarizing completeness.
-  - Application draft saving, final submission, and explainable status tracker.
+  - Candidate profile management with pre-fill capability (`/applicant/profile`).
+  - Scheme comparison explorer and interactive 3-question eligibility pre-screener (`/applicant/schemes/[code]`).
+  - Multi-step dynamic form wizard (`/applicant/applications/[id]`) with live auto-save and conditional visibility evaluation.
+  - Document checklist matrix (`/applicant/applications/[id]/documents`) with client & server pre-flight validation, versioned document storage, and inline preview.
+  - Pre-submission readiness engine (`/applicant/applications/[id]/readiness`) calculating blocking deficiencies and submission readiness score.
+  - Atomic draft creation with early `CaseDossier` (CaseStage.DRAFT) and sequential tracking numbers (`APP-` & `CASE-`).
+  - Explainable Case Status timeline tracker (`/applicant/applications/[id]/status`) presenting the 5-component transparent status model.
+  - Atomic submission and withdrawal lifecycle with immutable audit logging.
 - **Dependencies:** Phase 2C, Phase 2D.
 - **Acceptance Criteria:**
-  - An applicant can select NFST or NOS, fill in all dynamic fields, upload required certificates, and submit.
-  - Case state transitions to `SUBMITTED` with a generated Case ID and audit log entry.
-- **Status:** _NOT STARTED_
+  - Dynamic renderer consumes declarative FormSchema & DocumentRequirements without scheme hardcoding.
+  - Candidate can create drafts, fill fields, upload certificates, verify readiness, and submit atomically.
+  - Case state transitions to `SUBMITTED` / `CaseStage.INTAKE` with sequential case ID and audit log entry.
+  - Automated test coverage: 65 Vitest unit tests passing across 8 suites; 26 Playwright E2E tests passing.
+- **Status:** **COMPLETED** (Verified)
 
 ---
 

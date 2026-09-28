@@ -849,7 +849,231 @@ async function main() {
     },
   });
 
-  console.log("✅ Seed completed successfully with full Phase 2D Scheme Studio configurations!");
+  // ==========================================
+  // 6. PHASE 2E DEMO APPLICATIONS & CASE DOSSIERS
+  // ==========================================
+  console.log("📄 Seeding Phase 2E synthetic demo applications...");
+
+  // Application 1: NFST Draft Application with Early CaseDossier (DRAFT stage)
+  const nfstApp = await prisma.application.upsert({
+    where: {
+      applicantProfileId_schemeVersionId: {
+        applicantProfileId: "prof_demo_applicant_001",
+        schemeVersionId: "sch_ver_nfst_2025_1",
+      },
+    },
+    update: {
+      status: "DRAFT",
+      formData: {
+        fullName: "Ramesh Kumar Meena",
+        dateOfBirth: "1998-05-15",
+        gender: "Male",
+        stateDomicile: "Rajasthan",
+        casteCategory: "ST",
+        degreeType: "Ph.D.",
+        universityName: "University of Rajasthan, Jaipur",
+        annualFamilyIncome: 450000,
+      },
+    },
+    create: {
+      id: "app_demo_nfst_draft_001",
+      applicationNumber: "APP-NFST-2026-000101",
+      schemeVersionId: "sch_ver_nfst_2025_1",
+      applicantProfileId: "prof_demo_applicant_001",
+      submittedById: "usr_demo_applicant_001",
+      status: "DRAFT",
+      formData: {
+        fullName: "Ramesh Kumar Meena",
+        dateOfBirth: "1998-05-15",
+        gender: "Male",
+        stateDomicile: "Rajasthan",
+        casteCategory: "ST",
+        degreeType: "Ph.D.",
+        universityName: "University of Rajasthan, Jaipur",
+        annualFamilyIncome: 450000,
+      },
+    },
+  });
+
+  // Early CaseDossier for NFST Draft
+  await prisma.caseDossier.upsert({
+    where: { applicationId: nfstApp.id },
+    update: {
+      currentStage: "DRAFT",
+      currentState: "PENDING",
+      responsibleActor: "APPLICANT",
+      nextAction: "Complete the application form and upload required documents.",
+    },
+    create: {
+      id: "case_demo_nfst_001",
+      applicationId: nfstApp.id,
+      caseNumber: "CASE-NFST-2026-000101",
+      currentStage: "DRAFT",
+      currentState: "PENDING",
+      responsibleActor: "APPLICANT",
+      nextAction: "Complete the application form and upload required documents.",
+    },
+  });
+
+  // Application 2: NOS Submitted Application with SUBMITTED CaseDossier
+  const nosApp = await prisma.application.upsert({
+    where: {
+      applicantProfileId_schemeVersionId: {
+        applicantProfileId: "prof_demo_applicant_001",
+        schemeVersionId: "sch_ver_nos_2025_1",
+      },
+    },
+    update: {
+      status: "SUBMITTED",
+      submittedAt: new Date("2026-09-15T10:30:00.000Z"),
+      formData: {
+        fullName: "Ramesh Kumar Meena",
+        dateOfBirth: "1998-05-15",
+        gender: "Male",
+        passportNumber: "Z9876543",
+        passportExpiryDate: "2032-12-31",
+        casteCategory: "ST",
+        hostUniversity: "University of Oxford",
+        hostCountry: "United Kingdom",
+        degreeLevel: "Ph.D.",
+        courseStartDate: "2026-10-01",
+        academicPercentage: 72.5,
+        annualFamilyIncome: 450000,
+        selfDeclaration: true,
+      },
+    },
+    create: {
+      id: "app_demo_nos_sub_001",
+      applicationNumber: "APP-NOS-2026-000201",
+      schemeVersionId: "sch_ver_nos_2025_1",
+      applicantProfileId: "prof_demo_applicant_001",
+      submittedById: "usr_demo_applicant_001",
+      status: "SUBMITTED",
+      submittedAt: new Date("2026-09-15T10:30:00.000Z"),
+      formData: {
+        fullName: "Ramesh Kumar Meena",
+        dateOfBirth: "1998-05-15",
+        gender: "Male",
+        passportNumber: "Z9876543",
+        passportExpiryDate: "2032-12-31",
+        casteCategory: "ST",
+        hostUniversity: "University of Oxford",
+        hostCountry: "United Kingdom",
+        degreeLevel: "Ph.D.",
+        courseStartDate: "2026-10-01",
+        academicPercentage: 72.5,
+        annualFamilyIncome: 450000,
+        selfDeclaration: true,
+      },
+    },
+  });
+
+  const nosCase = await prisma.caseDossier.upsert({
+    where: { applicationId: nosApp.id },
+    update: {
+      currentStage: "SUBMITTED",
+      currentState: "PENDING",
+      responsibleActor: "SYSTEM",
+      nextAction: "Automated verification underway.",
+    },
+    create: {
+      id: "case_demo_nos_001",
+      applicationId: nosApp.id,
+      caseNumber: "CASE-NOS-2026-000201",
+      currentStage: "SUBMITTED",
+      currentState: "PENDING",
+      responsibleActor: "SYSTEM",
+      nextAction: "Automated verification underway.",
+    },
+  });
+
+  // Seed sample documents attached to the NOS case
+  const sampleDocs = [
+    {
+      id: "doc_demo_nos_caste_001",
+      documentType: "CASTE_CERTIFICATE" as const,
+      originalFilename: "Ramesh_ST_Certificate_Rajasthan.pdf",
+      storagePath: "case_demo_nos_001/CASTE_CERTIFICATE/sample_caste.pdf",
+      mimeType: "application/pdf",
+      fileSizeBytes: 1048576,
+    },
+    {
+      id: "doc_demo_nos_income_001",
+      documentType: "INCOME_CERTIFICATE" as const,
+      originalFilename: "Income_Certificate_FY25_26.pdf",
+      storagePath: "case_demo_nos_001/INCOME_CERTIFICATE/sample_income.pdf",
+      mimeType: "application/pdf",
+      fileSizeBytes: 819200,
+    },
+    {
+      id: "doc_demo_nos_passport_001",
+      documentType: "PASSPORT" as const,
+      originalFilename: "Indian_Passport_Ramesh_Z9876543.pdf",
+      storagePath: "case_demo_nos_001/PASSPORT/sample_passport.pdf",
+      mimeType: "application/pdf",
+      fileSizeBytes: 2097152,
+    },
+    {
+      id: "doc_demo_nos_offer_001",
+      documentType: "ADMISSION_OFFER_LETTER" as const,
+      originalFilename: "Oxford_Unconditional_Offer_Letter.pdf",
+      storagePath: "case_demo_nos_001/ADMISSION_OFFER_LETTER/sample_offer.pdf",
+      mimeType: "application/pdf",
+      fileSizeBytes: 1572864,
+    },
+    {
+      id: "doc_demo_nos_degree_001",
+      documentType: "DEGREE_TRANSCRIPT" as const,
+      originalFilename: "MSc_Physics_Consolidated_Marksheet.pdf",
+      storagePath: "case_demo_nos_001/DEGREE_TRANSCRIPT/sample_transcript.pdf",
+      mimeType: "application/pdf",
+      fileSizeBytes: 1258291,
+    },
+  ];
+
+  for (const doc of sampleDocs) {
+    await prisma.document.upsert({
+      where: { id: doc.id },
+      update: {
+        isLatestVersion: true,
+        processingStatus: "PENDING",
+      },
+      create: {
+        id: doc.id,
+        caseDossierId: nosCase.id,
+        documentType: doc.documentType,
+        originalFilename: doc.originalFilename,
+        storagePath: doc.storagePath,
+        mimeType: doc.mimeType,
+        fileSizeBytes: doc.fileSizeBytes,
+        uploadedById: "usr_demo_applicant_001",
+        version: 1,
+        isLatestVersion: true,
+        processingStatus: "PENDING",
+      },
+    });
+  }
+
+  // Audit log for NOS submission
+  await prisma.auditLog.create({
+    data: {
+      caseDossierId: nosCase.id,
+      actorId: "usr_demo_applicant_001",
+      actorRole: "APPLICANT",
+      actionType: "APPLICATION_SUBMITTED",
+      previousState: "DRAFT",
+      newState: "SUBMITTED",
+      payload: {
+        applicationNumber: nosApp.applicationNumber,
+        caseNumber: nosCase.caseNumber,
+        schemeCode: "NOS",
+      },
+    },
+  });
+
+  console.log(
+    "✅ Seed completed successfully with full Phase 2E Application and Case Dossier configurations!"
+  );
 }
 
 main()

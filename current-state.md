@@ -6,90 +6,85 @@
 ---
 
 - **Current phase:** Phase 2 (Actual Engineering)
-- **Current sub-phase:** Phase 2D (Scheme Studio & Declarative Configuration Engine)
-- **Current task:** Implementation, validation engine, and full verification of Scheme Studio
-- **Status:** Phase 2D COMPLETED & VERIFIED; Ready for Phase 2E
-- **Last stable commit:** Pending commit for Phase 2D
+- **Current sub-phase:** Phase 2E (Applicant Dynamic Application Flow & Checklist)
+- **Current task:** Verification, testing, and documentation finalized for Phase 2E
+- **Status:** Phase 2E COMPLETED & FULLY VERIFIED; Ready for Phase 2F
+- **Last stable commit:** Pending commit for Phase 2E
 - **Last completed work:**
-  - Designed and implemented typed declarative DSLs under `src/server/domain/scheme/types/`:
-    - `form-schema.types.ts`: Form fields, sections, dynamic validations, conditional visibility.
-    - `document-requirements.types.ts`: Document requirements matrix, mandatory/optional flags, file size/type constraints, validity rules.
-    - `eligibility-rules.types.ts`: Deterministic eligibility rules engine schema, operators, sources, severity, and ST relaxations.
-    - `workflow-config.types.ts`: Configurable workflow stages, SLAs, assignable roles (`UserRole | "SYSTEM" | "COMMITTEE"`), auto-advance flags.
-    - `selection-config.types.ts`: Quotas, financial components, disbursement frequencies, and merit ranking basis.
-    - `scheme-version.dto.ts`: Comprehensive strongly typed DTOs for public and administrative views.
-  - Implemented comprehensive structural Zod validators under `src/server/domain/scheme/validators/`.
-  - Implemented two-layer validation engine (`SchemeValidationService` in `src/server/services/scheme-validation.service.ts`):
-    - Structural Zod schema conformance.
-    - Semantic integrity validation (duplicate field IDs, cross-section references, ST category rules, mandatory document presence, workflow stage transitions, deadline sanity).
-  - Extended Prisma database schema (`prisma/schema.prisma`) with `applicationOpenDate`, `applicationDeadline`, and `selectionConfig` fields on `SchemeVersion`.
-  - Generated and applied migration `20260927211511_phase_2d_scheme_studio` to PostgreSQL container.
-  - Upgraded `SchemeRepository` with atomic version supersession (`publishNewVersion` via `prisma.$transaction`), audit logging, and version querying.
-  - Implemented database-backed `SchemeService` (`src/server/services/scheme.service.ts`) replacing legacy stubs with server-authoritative RBAC enforcement (`assertPermission`).
-  - Implemented 6 REST Route Handlers:
-    - `GET /api/schemes`: Public active scheme summaries.
-    - `GET /api/schemes/[code]/active`: Public active version DSL (no internal rule leakage).
-    - `GET /api/admin/schemes`: Admin scheme listing with active version metrics (`SCHEME_ADMIN`).
-    - `POST /api/admin/schemes`: Scheme creation endpoint (`SCHEME_ADMIN`).
-    - `GET /api/admin/schemes/[schemeId]`: Scheme detail with version history timeline (`SCHEME_ADMIN`).
-    - `POST /api/admin/schemes/[schemeId]/versions`: Version publish endpoint (`SCHEME_ADMIN`).
-    - `GET /api/admin/schemes/[schemeId]/versions/[versionId]`: Read-only published version inspector (`SCHEME_ADMIN`).
-    - `POST /api/admin/schemes/validate`: Pre-publish candidate validation endpoint (`SCHEME_ADMIN`).
-  - Seeded canonical, realistic declarative configurations in `prisma/seed.ts` for NFST v1 (fellowship) and NOS v1 (overseas scholarship).
-  - Built interactive Scheme Studio UI under `src/app/admin/schemes/`:
-    - Scheme Studio Dashboard (`/admin/schemes/page.tsx`).
-    - New Scheme Registration Form (`/admin/schemes/new/page.tsx`).
-    - Scheme Detail & Version Timeline (`/admin/schemes/[schemeId]/page.tsx`).
-    - Multi-Tab Declarative Policy Studio Editor (`/admin/schemes/[schemeId]/versions/new/page.tsx`).
-    - Read-Only Immutable Specification Inspector with JSON debug viewer (`/admin/schemes/[schemeId]/versions/[versionId]/page.tsx`).
-  - Automated test verification:
-    - 52/52 Vitest unit tests passing across 7 test suites (including 21 tests in `scheme-studio.test.ts`).
-    - 21/21 Playwright E2E browser tests passing across 3 test suites (`auth-rbac.spec.ts`, `foundation.spec.ts`, `scheme-studio.spec.ts`).
-    - 0 ESLint warnings or errors (`next lint`).
-    - 0 Prettier format discrepancies (`prettier --check .`).
-    - 0 TypeScript compiler errors (`tsc --noEmit`).
-    - Next.js production build (`next build`) compiling 17/17 routes cleanly.
+  - **Dynamic Application Flow & Form Wizard**:
+    - Built dynamic form schema renderer (`src/components/application/dynamic-form-wizard.tsx`, `form-section-renderer.tsx`, `form-field-renderer.tsx`) rendering all field types (text, number, select, radio, date, textarea) without scheme-specific hardcoding.
+    - Implemented client and server conditional visibility evaluation (`evaluateCondition` and `sanitizeHiddenFieldValues`).
+    - Implemented auto-save debouncing with dirty-state indicator.
+  - **Document Checklist & Pre-Flight Validation**:
+    - Created document checklist matrix component (`src/components/application/document-checklist.tsx`, `document-upload-card.tsx`).
+    - Enforced pre-flight MIME type, extension, and file size checks (both client-side and server-side).
+    - Implemented secure preview route (`/api/documents/preview/[...key]`) streaming sanitized file buffers with proper Content-Type headers.
+    - Added document deletion and replacement with version archiving.
+  - **Pre-Submission Readiness Engine**:
+    - Built `evaluateApplicationReadiness` (`src/server/domain/application/readiness.ts`) analyzing mandatory fields, document matrix, window deadlines, and blocking reasons.
+    - Implemented visual readiness report component (`src/components/application/readiness-report.tsx`).
+  - **Explainable Case Status & Early Dossier Lifecycle**:
+    - Enforced early `CaseDossier` creation in `CaseStage.DRAFT` atomically with `Application` draft.
+    - Implemented 5-component transparent status engine (`getExplainableCaseStatus` in `src/server/domain/application/explainable-status.ts`): (1) Current Stage, (2) Current State, (3) Responsible Actor, (4) Next Expected Action, (5) Estimated SLA Timeline.
+    - Built applicant explainable status timeline UI (`/applicant/applications/[id]/status`).
+  - **Server-Authoritative Application Service & RBAC**:
+    - Implemented `ApplicationService` (`src/server/services/application.service.ts`) enforcing candidate profile ownership, draft mutations, document attachments, readiness verification, atomic submission, and withdrawal.
+    - Implemented `ApplicationRepository` with Prisma transactions, sequential number generators (`APP-YYYYMMDD-XXXX` and `CASE-YYYYMMDD-XXXX`), and immutable audit logging.
+  - **Applicant Pages & Route Handlers**:
+    - `/applicant`: Applicant Dashboard showing profile summary, active draft/submitted applications, and scheme recommendations.
+    - `/applicant/profile`: Personal details, ST certificate, income, and bank pre-fill details.
+    - `/applicant/schemes`: Browse active schemes.
+    - `/applicant/schemes/[code]`: Scheme details, guidelines, documents, and 3-question eligibility pre-screener.
+    - `/applicant/applications/new/[schemeCode]`: One-click draft creation with early dossier.
+    - `/applicant/applications/[id]`: Dynamic Form Wizard with section tabs.
+    - `/applicant/applications/[id]/documents`: Document upload matrix and checklist.
+    - `/applicant/applications/[id]/readiness`: Pre-submission readiness score and submit trigger.
+    - `/applicant/applications/[id]/status`: Explainable tracking timeline.
+    - 10 Route Handlers under `/api/applicant/**` and `/api/documents/preview/**`.
+  - **Automated Verification**:
+    - Vitest: 65/65 unit tests passing across 8 suites (`applicant-flow.test.ts`, `scheme-studio.test.ts`, `auth.test.ts`, `domain.test.ts`, `rbac.test.ts`, `rules.test.ts`, `storage.test.ts`, `utils.test.ts`).
+    - Playwright: 26/26 E2E tests passing across 4 suites (`applicant-flow.spec.ts`, `auth-rbac.spec.ts`, `foundation.spec.ts`, `scheme-studio.spec.ts`).
+    - Next.js build: 21/21 static/dynamic pages compiled cleanly.
+    - Type check: 0 TypeScript errors.
+    - ESLint: 0 warnings or errors.
+    - Prettier: All files formatted.
 - **Current working features:**
-  - Declarative configuration engine supporting NFST, NOS, and custom schemes with zero code changes.
-  - Multi-tab Scheme Studio editor for Form Builder, Document Matrix, Rules DSL, Workflow/SLA, and Grants/Selection.
-  - Two-layer pre-publish validation preventing broken or malformed scheme rules.
-  - Published SchemeVersion immutability guaranteed at database and service layers.
-  - Atomic supersession transaction with immutable audit logging.
-  - Public scheme explorer APIs with rule privacy protection.
-  - NextAuth.js v4 JWT session lifecycle with server-authoritative RBAC.
-  - 17 Next.js App Router routes compiled cleanly.
-  - 52 Vitest unit tests passing.
-  - 21 Playwright E2E tests passing.
+  - Declarative dynamic form wizard consuming FormSchema DSL.
+  - Document checklist matrix with client/server validation and preview.
+  - Pre-submission readiness engine preventing invalid submissions.
+  - Explainable 5-component case status tracker.
+  - Atomic draft creation with early CaseDossier (CaseStage.DRAFT).
+  - Scheme comparison and interactive pre-screener.
+  - Candidate profile management with pre-fill capability.
+  - Multi-tab Scheme Studio editor for scheme administrators.
+  - Role-based access control with NextAuth v4 credentials and server-authoritative middleware/guards.
+  - 21 Next.js App Router routes compiled cleanly.
 - **Current blockers:** None
 - **Current errors:** None
 - **Files recently changed:**
-  - `prisma/schema.prisma`
-  - `prisma/migrations/20260927211511_phase_2d_scheme_studio/`
-  - `src/server/domain/scheme/types/*`
-  - `src/server/domain/scheme/validators/*`
-  - `src/server/services/scheme-validation.service.ts`
+  - `src/server/domain/application/**`
+  - `src/server/repositories/application.repository.ts`
+  - `src/server/repositories/document.repository.ts`
   - `src/server/repositories/scheme.repository.ts`
-  - `src/server/services/scheme.service.ts`
-  - `src/server/auth/roles.ts`
-  - `src/app/api/schemes/*`
-  - `src/app/api/admin/schemes/*`
-  - `src/app/admin/schemes/*`
-  - `src/app/admin/page.tsx`
-  - `src/app/login/page.tsx`
+  - `src/server/repositories/index.ts`
+  - `src/server/services/application.service.ts`
+  - `src/server/services/document.service.ts`
+  - `src/app/api/applicant/**`
+  - `src/app/api/documents/preview/[...key]/route.ts`
+  - `src/components/ui/input.tsx`, `label.tsx`, `textarea.tsx`
+  - `src/components/application/**`
+  - `src/app/applicant/**`
   - `prisma/seed.ts`
-  - `tests/unit/scheme-studio.test.ts`
-  - `tests/e2e/scheme-studio.spec.ts`
-  - `tests/e2e/auth-rbac.spec.ts`
-  - `tests/e2e/foundation.spec.ts`
-  - `package.json`
+  - `tests/unit/applicant-flow.test.ts`
+  - `tests/e2e/applicant-flow.spec.ts`
   - `phases.md`
   - `current-state.md`
-- **Tests run:** Vitest (7 test files, 52 tests), Playwright (3 test files, 21 tests), ESLint (`next lint`), Prettier (`prettier --check .`), TypeScript check (`tsc --noEmit`), Next.js production build (`next build`)
-- **Tests passing:** 52/52 Vitest unit tests, 21/21 Playwright E2E tests, 0 lint errors, 0 format issues, 0 TypeScript errors, 17/17 routes built
+- **Tests run:** Vitest (8 test files, 65 tests), Playwright (4 test files, 26 tests), ESLint (`next lint`), Prettier (`prettier --check .`), TypeScript check (`tsc --noEmit`), Next.js production build (`next build`)
+- **Tests passing:** 65/65 Vitest unit tests, 26/26 Playwright E2E tests, 0 lint errors, 0 format issues, 0 TypeScript errors, 21/21 routes built
 - **Tests failing:** 0
 - **Database verification status:**
   - Migrations applied: YES (`20260928000000_phase_2b_domain`, `20260927211511_phase_2d_scheme_studio`)
-  - Seed executed: YES (`prisma db seed` with full Phase 2D DSL configurations)
+  - Seed executed: YES (`prisma db seed` with demo personas, active schemes, draft NFST application + dossier, submitted NOS application + dossier + documents + audit logs)
   - Active schemes: NFST v1, NOS v1
-- **Exact next step:** Phase 2D is complete. Awaiting user instructions before starting Phase 2E (Applicant Dynamic Application Flow & Checklist).
+- **Exact next step:** Phase 2E is complete. Awaiting user instructions before starting Phase 2F (Document Intelligence & Multilingual OCR Pipeline).
 - **Last verified:** 2026-09-28 (Local System Time)
