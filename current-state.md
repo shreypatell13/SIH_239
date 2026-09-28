@@ -6,68 +6,90 @@
 ---
 
 - **Current phase:** Phase 2 (Actual Engineering)
-- **Current sub-phase:** Phase 2C (Authentication & Role-Based Access Control)
-- **Current task:** Authentication and server-authoritative RBAC implementation, verification, and hardening
-- **Status:** Phase 2C COMPLETED & VERIFIED; Ready for Phase 2D
-- **Last stable commit:** `8e87c16` ("phase-2c: implement authentication and server-side RBAC")
-- **Last completed work:** 
-  - Real authentication implemented via NextAuth.js v4 using Credentials provider and JWT session strategy.
-  - User lookup strictly routed through Prisma PostgreSQL `User` records with bcrypt (cost factor 12) password verification.
-  - Server-authoritative RBAC matrix established for 4 canonical roles (`APPLICANT`, `VERIFICATION_OFFICER`, `SCHEME_ADMIN`, `OPERATIONS_DIRECTOR`).
-  - Active user status guard (`assertActiveUser`) and permission check helpers.
-  - Next.js Edge-compatible middleware (`src/middleware.ts`) enforcing unauthenticated redirect to `/login` for protected page groups.
-  - Server Component layout guards (`/applicant`, `/officer`, `/admin`, `/management`) enforcing server-side role authorization with custom 403 Forbidden UI (`ForbiddenPage`).
-  - Protected API route handler (`GET /api/officer/cases`) returning 401 for unauthenticated requests, 403 for wrong roles, and 200 for authorized officers.
-  - Hackathon demo persona quick login integrated into `/login` executing normal NextAuth credentials pipeline with zero security bypass.
-  - Live session header indicator (`SessionNavUser`) showing user identity, role badge, demo indicator, and sign-out action.
-  - Database seed updated with real bcrypt password hashes for all 4 demo personas.
-  - Vitest test suite expanded to 31 unit tests across 6 files (100% passing).
-  - Playwright E2E test suite with 11 tests across 2 specs (100% passing).
-  - Production build (`next build`) compiling 11/11 routes cleanly.
+- **Current sub-phase:** Phase 2D (Scheme Studio & Declarative Configuration Engine)
+- **Current task:** Implementation, validation engine, and full verification of Scheme Studio
+- **Status:** Phase 2D COMPLETED & VERIFIED; Ready for Phase 2E
+- **Last stable commit:** Pending commit for Phase 2D
+- **Last completed work:**
+  - Designed and implemented typed declarative DSLs under `src/server/domain/scheme/types/`:
+    - `form-schema.types.ts`: Form fields, sections, dynamic validations, conditional visibility.
+    - `document-requirements.types.ts`: Document requirements matrix, mandatory/optional flags, file size/type constraints, validity rules.
+    - `eligibility-rules.types.ts`: Deterministic eligibility rules engine schema, operators, sources, severity, and ST relaxations.
+    - `workflow-config.types.ts`: Configurable workflow stages, SLAs, assignable roles (`UserRole | "SYSTEM" | "COMMITTEE"`), auto-advance flags.
+    - `selection-config.types.ts`: Quotas, financial components, disbursement frequencies, and merit ranking basis.
+    - `scheme-version.dto.ts`: Comprehensive strongly typed DTOs for public and administrative views.
+  - Implemented comprehensive structural Zod validators under `src/server/domain/scheme/validators/`.
+  - Implemented two-layer validation engine (`SchemeValidationService` in `src/server/services/scheme-validation.service.ts`):
+    - Structural Zod schema conformance.
+    - Semantic integrity validation (duplicate field IDs, cross-section references, ST category rules, mandatory document presence, workflow stage transitions, deadline sanity).
+  - Extended Prisma database schema (`prisma/schema.prisma`) with `applicationOpenDate`, `applicationDeadline`, and `selectionConfig` fields on `SchemeVersion`.
+  - Generated and applied migration `20260927211511_phase_2d_scheme_studio` to PostgreSQL container.
+  - Upgraded `SchemeRepository` with atomic version supersession (`publishNewVersion` via `prisma.$transaction`), audit logging, and version querying.
+  - Implemented database-backed `SchemeService` (`src/server/services/scheme.service.ts`) replacing legacy stubs with server-authoritative RBAC enforcement (`assertPermission`).
+  - Implemented 6 REST Route Handlers:
+    - `GET /api/schemes`: Public active scheme summaries.
+    - `GET /api/schemes/[code]/active`: Public active version DSL (no internal rule leakage).
+    - `GET /api/admin/schemes`: Admin scheme listing with active version metrics (`SCHEME_ADMIN`).
+    - `POST /api/admin/schemes`: Scheme creation endpoint (`SCHEME_ADMIN`).
+    - `GET /api/admin/schemes/[schemeId]`: Scheme detail with version history timeline (`SCHEME_ADMIN`).
+    - `POST /api/admin/schemes/[schemeId]/versions`: Version publish endpoint (`SCHEME_ADMIN`).
+    - `GET /api/admin/schemes/[schemeId]/versions/[versionId]`: Read-only published version inspector (`SCHEME_ADMIN`).
+    - `POST /api/admin/schemes/validate`: Pre-publish candidate validation endpoint (`SCHEME_ADMIN`).
+  - Seeded canonical, realistic declarative configurations in `prisma/seed.ts` for NFST v1 (fellowship) and NOS v1 (overseas scholarship).
+  - Built interactive Scheme Studio UI under `src/app/admin/schemes/`:
+    - Scheme Studio Dashboard (`/admin/schemes/page.tsx`).
+    - New Scheme Registration Form (`/admin/schemes/new/page.tsx`).
+    - Scheme Detail & Version Timeline (`/admin/schemes/[schemeId]/page.tsx`).
+    - Multi-Tab Declarative Policy Studio Editor (`/admin/schemes/[schemeId]/versions/new/page.tsx`).
+    - Read-Only Immutable Specification Inspector with JSON debug viewer (`/admin/schemes/[schemeId]/versions/[versionId]/page.tsx`).
+  - Automated test verification:
+    - 52/52 Vitest unit tests passing across 7 test suites (including 21 tests in `scheme-studio.test.ts`).
+    - 21/21 Playwright E2E browser tests passing across 3 test suites (`auth-rbac.spec.ts`, `foundation.spec.ts`, `scheme-studio.spec.ts`).
+    - 0 ESLint warnings or errors (`next lint`).
+    - 0 Prettier format discrepancies (`prettier --check .`).
+    - 0 TypeScript compiler errors (`tsc --noEmit`).
+    - Next.js production build (`next build`) compiling 17/17 routes cleanly.
 - **Current working features:**
-  - Full relational domain model in PostgreSQL with 13 models and 13 enums
-  - NextAuth.js v4 JWT session lifecycle (8h expiry, httpOnly secure cookies)
-  - Bcrypt password hashing and verification utility (`src/server/auth/password.ts`)
-  - Server-authoritative role and permission checking (`src/server/auth/roles.ts`)
-  - Production session resolver (`getServerAuthUser` in `src/server/auth/session.ts`)
-  - Route middleware protecting `/applicant/*`, `/officer/*`, `/admin/*`, `/management/*`
-  - 403 Forbidden UI for unauthorized role access
-  - Dynamic user identity rendered across all role portals
-  - Protected officer API route with 401/403/200 RBAC enforcement
-  - Deterministic demo seed script in `prisma/seed.ts`
-  - 31 Vitest unit tests passing
-  - 11 Playwright E2E browser tests passing
-  - Next.js production build compiling 11/11 static/dynamic routes cleanly
+  - Declarative configuration engine supporting NFST, NOS, and custom schemes with zero code changes.
+  - Multi-tab Scheme Studio editor for Form Builder, Document Matrix, Rules DSL, Workflow/SLA, and Grants/Selection.
+  - Two-layer pre-publish validation preventing broken or malformed scheme rules.
+  - Published SchemeVersion immutability guaranteed at database and service layers.
+  - Atomic supersession transaction with immutable audit logging.
+  - Public scheme explorer APIs with rule privacy protection.
+  - NextAuth.js v4 JWT session lifecycle with server-authoritative RBAC.
+  - 17 Next.js App Router routes compiled cleanly.
+  - 52 Vitest unit tests passing.
+  - 21 Playwright E2E tests passing.
 - **Current blockers:** None
 - **Current errors:** None
 - **Files recently changed:**
-  - `src/types/next-auth.d.ts` (NEW)
-  - `src/server/auth/password.ts` (NEW)
-  - `src/server/auth/nextauth.config.ts` (NEW)
-  - `src/app/api/auth/[...nextauth]/route.ts` (NEW)
-  - `src/app/login/page.tsx` (NEW)
-  - `src/app/applicant/layout.tsx` (NEW)
-  - `src/app/officer/layout.tsx` (NEW)
-  - `src/app/admin/layout.tsx` (NEW)
-  - `src/app/management/layout.tsx` (NEW)
-  - `src/components/auth/forbidden-page.tsx` (NEW)
-  - `src/components/auth/session-nav-user.tsx` (NEW)
-  - `src/components/auth/auth-provider.tsx` (NEW)
-  - `src/app/api/officer/cases/route.ts` (NEW)
-  - `tests/unit/auth.test.ts` (NEW)
-  - `tests/e2e/auth-rbac.spec.ts` (NEW)
-  - `src/middleware.ts` (NEW)
-  - `src/server/auth/roles.ts`, `src/server/auth/session.ts`
-  - `src/components/layout/nav-shell.tsx`, `src/app/layout.tsx`
-  - `src/app/applicant/page.tsx`, `src/app/officer/page.tsx`, `src/app/admin/page.tsx`, `src/app/management/page.tsx`
-  - `prisma/seed.ts`, `package.json`, `.env.example`
-  - `phases.md`, `current-state.md`
-- **Tests run:** Vitest (6 test files, 31 tests), Playwright (2 test files, 11 tests), ESLint (`next lint`), Prettier (`prettier --check .`), TypeScript check (`tsc --noEmit`), Next.js production build (`next build`)
-- **Tests passing:** 31/31 Vitest unit tests, 11/11 Playwright E2E tests, 0 lint errors, 0 format issues, 0 TypeScript errors, 11/11 routes built
+  - `prisma/schema.prisma`
+  - `prisma/migrations/20260927211511_phase_2d_scheme_studio/`
+  - `src/server/domain/scheme/types/*`
+  - `src/server/domain/scheme/validators/*`
+  - `src/server/services/scheme-validation.service.ts`
+  - `src/server/repositories/scheme.repository.ts`
+  - `src/server/services/scheme.service.ts`
+  - `src/server/auth/roles.ts`
+  - `src/app/api/schemes/*`
+  - `src/app/api/admin/schemes/*`
+  - `src/app/admin/schemes/*`
+  - `src/app/admin/page.tsx`
+  - `src/app/login/page.tsx`
+  - `prisma/seed.ts`
+  - `tests/unit/scheme-studio.test.ts`
+  - `tests/e2e/scheme-studio.spec.ts`
+  - `tests/e2e/auth-rbac.spec.ts`
+  - `tests/e2e/foundation.spec.ts`
+  - `package.json`
+  - `phases.md`
+  - `current-state.md`
+- **Tests run:** Vitest (7 test files, 52 tests), Playwright (3 test files, 21 tests), ESLint (`next lint`), Prettier (`prettier --check .`), TypeScript check (`tsc --noEmit`), Next.js production build (`next build`)
+- **Tests passing:** 52/52 Vitest unit tests, 21/21 Playwright E2E tests, 0 lint errors, 0 format issues, 0 TypeScript errors, 17/17 routes built
 - **Tests failing:** 0
 - **Database verification status:**
-  - Migration applied: YES (`20260928000000_phase_2b_domain`)
-  - Seed executed: YES (`prisma db seed` with real bcrypt hashes)
-  - Live demo users: 4 users with verified roles and bcrypt credentials
-- **Exact next step:** Proceed to Phase 2D (Scheme Studio & Declarative Configuration Engine)
+  - Migrations applied: YES (`20260928000000_phase_2b_domain`, `20260927211511_phase_2d_scheme_studio`)
+  - Seed executed: YES (`prisma db seed` with full Phase 2D DSL configurations)
+  - Active schemes: NFST v1, NOS v1
+- **Exact next step:** Phase 2D is complete. Awaiting user instructions before starting Phase 2E (Applicant Dynamic Application Flow & Checklist).
 - **Last verified:** 2026-09-28 (Local System Time)

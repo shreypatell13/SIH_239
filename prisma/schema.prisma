@@ -185,6 +185,9 @@ model SchemeVersion {
   documentRequirements Json                  // Declarative JSON schema for required documents
   eligibilityRules     Json                  // Declarative ruleset for thresholds (age, income, percentage, etc.)
   workflowConfig       Json?                 // SLA days, stages
+  selectionConfig      Json?                 // Quotas, financial components, merit basis
+  applicationOpenDate  DateTime?             // Earliest submission date
+  applicationDeadline  DateTime?             // Hard close date
   publishedById        String?
   publishedBy          User?                 @relation("SchemeVersionPublisher", fields: [publishedById], references: [id], onDelete: SetNull)
   publishedAt          DateTime              @default(now())

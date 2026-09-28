@@ -5,7 +5,9 @@ test.describe("Authentication & Server-Authoritative RBAC E2E Tests", () => {
     test("unauthenticated access to /officer redirects to /login", async ({ page }) => {
       await page.goto("/officer");
       await expect(page).toHaveURL(/.*\/login.*/);
-      await expect(page.locator("h1")).toContainText("Sign In to TribalScholar AI");
+      await expect(
+        page.getByRole("heading", { name: "Sign In to TribalScholar AI" })
+      ).toBeVisible();
     });
 
     test("unauthenticated access to /applicant redirects to /login", async ({ page }) => {
@@ -36,7 +38,7 @@ test.describe("Authentication & Server-Authoritative RBAC E2E Tests", () => {
 
       // 3. Should land on /applicant
       await expect(page).toHaveURL(/\/applicant/);
-      await expect(page.locator("h1")).toContainText("Applicant Portal");
+      await expect(page.getByRole("heading", { name: "Applicant Portal" })).toBeVisible();
       await expect(page.getByText(/APPLICANT/i).first()).toBeVisible();
 
       // 4. Try navigating directly to /officer with APPLICANT session
@@ -53,7 +55,7 @@ test.describe("Authentication & Server-Authoritative RBAC E2E Tests", () => {
       await page.getByRole("button", { name: /Sign in as VERIFICATION_OFFICER/i }).click();
 
       await expect(page).toHaveURL(/\/officer/);
-      await expect(page.locator("h1")).toContainText("Officer Case Workspace");
+      await expect(page.getByRole("heading", { name: "Officer Case Workspace" })).toBeVisible();
     });
 
     test("admin login succeeds and grants access to /admin", async ({ page }) => {
@@ -61,7 +63,9 @@ test.describe("Authentication & Server-Authoritative RBAC E2E Tests", () => {
       await page.getByRole("button", { name: /Sign in as SCHEME_ADMIN/i }).click();
 
       await expect(page).toHaveURL(/\/admin/);
-      await expect(page.locator("h1")).toContainText("Scheme Studio");
+      await expect(
+        page.getByRole("heading", { name: "Scheme Studio — Administrator Console" })
+      ).toBeVisible();
     });
 
     test("director login succeeds and grants access to /management", async ({ page }) => {
@@ -69,7 +73,7 @@ test.describe("Authentication & Server-Authoritative RBAC E2E Tests", () => {
       await page.getByRole("button", { name: /Sign in as OPERATIONS_DIRECTOR/i }).click();
 
       await expect(page).toHaveURL(/\/management/);
-      await expect(page.locator("h1")).toContainText("Operations Control Tower");
+      await expect(page.getByRole("heading", { name: "Operations Control Tower" })).toBeVisible();
     });
   });
 

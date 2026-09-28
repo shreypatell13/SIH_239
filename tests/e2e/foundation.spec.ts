@@ -3,16 +3,16 @@ import { test, expect } from "@playwright/test";
 test.describe("Public Foundation Route Accessibility Tests", () => {
   test("home page renders hero and portal links", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("h2")).toContainText("TribalScholar AI");
-    await expect(page.getByText("Applicant Portal")).toBeVisible();
-    await expect(page.getByText("Officer Case Workspace")).toBeVisible();
-    await expect(page.getByText("Scheme Studio")).toBeVisible();
-    await expect(page.getByText("Operations Control Tower")).toBeVisible();
+    await expect(page.locator("main h2")).toContainText("TribalScholar AI");
+    await expect(page.getByRole("heading", { name: "Applicant Portal" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Officer Case Workspace" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Scheme Studio" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Operations Control Tower" })).toBeVisible();
   });
 
   test("login page renders credentials form and demo personas", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.locator("h1")).toContainText("Sign In to TribalScholar AI");
+    await expect(page.getByRole("heading", { name: "Sign In to TribalScholar AI" })).toBeVisible();
     await expect(page.getByText("Credentials Login")).toBeVisible();
     await expect(page.getByText("Ramesh Kumar Meena")).toBeVisible();
   });

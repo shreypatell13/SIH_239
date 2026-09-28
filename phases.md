@@ -15,7 +15,7 @@
 | **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier |
 | **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)      |
 | **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | _PENDING_     | Dependent on 2B                                                                 |
-| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | _PENDING_     | Dependent on 2B, 2C                                                             |
+| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | **COMPLETED** | Verified: Typed DSLs, Zod & Semantic validators, Scheme Studio UI, supersession, Vitest (52/52), Playwright (21/21) |
 | **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | _PENDING_     | Dependent on 2C, 2D                                                             |
 | **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | _PENDING_     | Dependent on 2B, 2E                                                             |
 | **Phase 2G**         | Deterministic Rules & Verification Engine                     | _PENDING_     | Dependent on 2D, 2F                                                             |
@@ -112,15 +112,17 @@
 
 - **Goal:** Enable declarative creation, editing, and versioning of scholarship schemes without hardcoded code changes.
 - **Major Features:**
-  - Declarative JSON schema models for **NFST** and **NOS**.
-  - Dynamic field definitions (academic history, caste verification, income details, passport, foreign offer).
-  - Document requirement matrices (file constraints, validity thresholds).
-  - Admin Scheme Studio UI to inspect and manage scheme parameters.
+  - Strongly typed declarative DSLs for Form Schemas, Document Matrix, Eligibility Rules DSL, Workflow/SLA Config, and Selection/Quotas.
+  - Two-layer validation engine: Structural (Zod) + Semantic (Business Rule integrity, duplicate ID detection, cross-section dependency verification).
+  - Version immutability & atomic supersession via PostgreSQL transactions with comprehensive audit logging.
+  - Admin Scheme Studio UI (`/admin/schemes`) featuring multi-tab visual configuration builder, validation inspector, and live JSON explorer.
+  - Public scheme explorer APIs (`/api/schemes`, `/api/schemes/[code]/active`) providing clean summaries without internal threshold leakage.
 - **Dependencies:** Phase 2B, Phase 2C.
 - **Acceptance Criteria:**
-  - Scheme definitions for NFST and NOS stored and retrieved from the database.
-  - Schema updates generate new version records while preserving active application states.
-- **Status:** _NOT STARTED_
+  - Scheme definitions for NFST and NOS stored and retrieved from the database via Prisma ORM.
+  - Schema updates generate new immutable version records while preserving previous version states.
+  - Automated test coverage: 52 Vitest unit tests passing across 7 suites; 21 Playwright E2E tests passing.
+- **Status:** **COMPLETED** (Verified)
 
 ---
 

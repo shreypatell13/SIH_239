@@ -114,8 +114,7 @@ function LoginForm() {
         setErrorMessage("Invalid credentials. Please verify email and password.");
         setIsLoading(false);
       } else {
-        router.push(targetUrl);
-        router.refresh();
+        window.location.href = targetUrl;
       }
     } catch {
       setErrorMessage("An unexpected authentication error occurred.");
@@ -127,7 +126,7 @@ function LoginForm() {
     <div className="mx-auto max-w-5xl space-y-8 py-4">
       {/* Header */}
       <div className="space-y-2 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 shadow-xs">
+        <div className="shadow-xs inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600">
           <ShieldCheck className="h-3.5 w-3.5 text-gov-saffron" />
           <span>Server-Authoritative Authentication &amp; RBAC</span>
         </div>
@@ -142,7 +141,7 @@ function LoginForm() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Standard Credentials Form */}
         <div className="lg:col-span-5">
-          <Card className="border-slate-200 shadow-xs">
+          <Card className="shadow-xs border-slate-200">
             <CardHeader>
               <CardTitle className="text-lg">Credentials Login</CardTitle>
               <CardDescription className="text-xs">
@@ -236,7 +235,7 @@ function LoginForm() {
               return (
                 <Card
                   key={persona.role}
-                  className="flex flex-col justify-between border-slate-200 transition-all hover:border-gov-saffron hover:shadow-xs"
+                  className="hover:shadow-xs flex flex-col justify-between border-slate-200 transition-all hover:border-gov-saffron"
                 >
                   <CardHeader className="p-4 pb-2">
                     <div className="flex items-center justify-between">

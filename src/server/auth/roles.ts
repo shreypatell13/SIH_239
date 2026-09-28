@@ -47,10 +47,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly string[]> = {
     "case:read:assigned",
     "case:transition:officer_actions",
     "audit:read:assigned",
+    "scheme:read",
   ],
   SCHEME_ADMIN: [
     "scheme:create",
     "scheme:update",
+    "scheme:read",
     "scheme:read:all",
     "scheme:version",
     "rule:configure",
@@ -69,6 +71,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly string[]> = {
     "application:read:all",
     "audit:read:all",
     "officer:workload:view",
+    "scheme:read",
   ],
 } as const;
 
@@ -123,6 +126,22 @@ export function assertAuthorized(
   if (user.role !== requiredRole) {
     throw new Error(
       `Forbidden: Server-side RBAC rejected access to ${resourceName ?? "resource"}. Required role: ${requiredRole}, provided role: ${user.role}.`
+    );
+  }
+}
+
+/**
+ * Guard function that throws an unauthorized / forbidden error if permission check fails.
+ */
+export function assertPermission(
+  user: AuthenticatedUser | null | undefined,
+  requiredPermission: string,
+  resourceName?: string
+): asserts user is AuthenticatedUser {
+  assertActiveUser(user);
+  if (!hasPermission(user, requiredPermission)) {
+    throw new Error(
+      `Forbidden: Server-side RBAC rejected access to ${resourceName ?? "resource"}. Required permission: ${requiredPermission}, provided role: ${user.role}.`
     );
   }
 }
