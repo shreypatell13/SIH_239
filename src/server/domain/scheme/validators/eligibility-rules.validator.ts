@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DocumentType } from "@prisma/client";
 
 /**
  * Zod Validators for Eligibility Rule DSL
@@ -36,6 +37,8 @@ export const EligibilityRuleItemSchema = z.object({
   description: z.string().min(1, "Rule description is required"),
   source: RuleSourceSchema,
   sourceField: z.string().min(1, "sourceField is required"),
+  dependsOnFields: z.array(z.string().min(1)).optional(),
+  dependsOnDocumentTypes: z.array(z.nativeEnum(DocumentType)).optional(),
   operator: RuleOperatorSchema,
   threshold: z.union([
     z.string(),

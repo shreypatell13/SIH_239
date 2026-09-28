@@ -1,47 +1,33 @@
 import { describe, it, expect } from "vitest";
-import { ruleService } from "@/server/services/rule.service";
+import { evaluateOperator } from "@/server/domain/eligibility/operators";
 
-describe("Deterministic Rule Service Tests", () => {
-  it("should approve NOS applicant who meets all criteria (ST category, <= 8L income, >= 60% marks)", async () => {
-    const results = await ruleService.evaluateEligibility({
-      applicantAgeYears: 28,
-      annualFamilyIncomeInr: 450000,
-      qualifyingPercentage: 68,
-      isStCategoryConfirmed: true,
-      schemeCode: "NOS",
-    });
+describe("Declarative rule operator evaluation", () => {
+  it("uses the configured threshold rather than a scheme-specific constant", () => {
+    const evaluateIncomeCeiling = (income: number, configuredThreshold: number) =>
+      evaluateOperator({
+        operator: "LESS_THAN_OR_EQUALS",
+        resolvedValue: income,
+        threshold: configuredThreshold,
+        isCandidateSt: true,
+        failureMessageTemplate: "Income exceeds configured ceiling.",
+        referenceDate: new Date("2026-01-01"),
+      });
 
-    expect(results).toHaveLength(3);
-    expect(results.every((r) => r.isPassed)).toBe(true);
-    expect(results.some((r) => r.isDeficiency)).toBe(false);
+    expect(evaluateIncomeCeiling(450000, 800000).outcome).toBe("PASS");
+    expect(evaluateIncomeCeiling(950000, 800000).outcome).toBe("FAIL");
+    expect(evaluateIncomeCeiling(950000, 1000000).outcome).toBe("PASS");
   });
 
-  it("should flag deficiency when NOS applicant income exceeds 8 Lakhs ceiling", async () => {
-    const results = await ruleService.evaluateEligibility({
-      applicantAgeYears: 28,
-      annualFamilyIncomeInr: 950000,
-      qualifyingPercentage: 68,
-      isStCategoryConfirmed: true,
-      schemeCode: "NOS",
+  it("preserves deterministic pass and failure explanations", () => {
+    const result = evaluateOperator({
+      operator: "GREATER_THAN_OR_EQUALS",
+      resolvedValue: 62,
+      threshold: 60,
+      isCandidateSt: false,
+      failureMessageTemplate: "Score is below configured minimum.",
+      referenceDate: new Date("2026-01-01"),
     });
-
-    const incomeRule = results.find((r) => r.ruleCode === "RULE_NOS_INCOME_CEILING");
-    expect(incomeRule).toBeDefined();
-    expect(incomeRule?.isPassed).toBe(false);
-    expect(incomeRule?.isDeficiency).toBe(true);
-    expect(incomeRule?.explanation).toContain("exceeds the Rs. 8,00,000 limit");
-  });
-
-  it("should flag deficiency when ST category is not confirmed", async () => {
-    const results = await ruleService.evaluateEligibility({
-      applicantAgeYears: 25,
-      qualifyingPercentage: 62,
-      isStCategoryConfirmed: false,
-      schemeCode: "NFST",
-    });
-
-    const stRule = results.find((r) => r.ruleCode === "RULE_ST_CATEGORY");
-    expect(stRule?.isPassed).toBe(false);
-    expect(stRule?.isDeficiency).toBe(true);
+    expect(result.outcome).toBe("PASS");
+    expect(result.expectedValueString).toBe("60");
   });
 });

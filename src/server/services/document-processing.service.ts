@@ -12,6 +12,7 @@ import { DocumentClassifier } from "../documents/classification/document.classif
 import { FieldExtractorRegistry } from "../documents/field-extractors";
 import { ConfidenceModel } from "../documents/confidence.model";
 import { AuthenticatedUser, assertPermission } from "../auth/roles";
+import { assertCanAccessCase } from "../auth/case-access";
 
 export interface OfficerDocumentExtractionDTO {
   documentId: string;
@@ -336,6 +337,12 @@ export class DocumentProcessingService {
     if (!doc) {
       throw new Error(`Document ${documentId} not found`);
     }
+    const dossier = await prisma.caseDossier.findUnique({
+      where: { id: doc.caseDossierId },
+      include: { application: { select: { submittedById: true } } },
+    });
+    if (!dossier) throw new Error("Case not found for document.");
+    assertCanAccessCase(actor, dossier, "act");
 
     const previousType = doc.classifiedAs;
 
@@ -372,6 +379,12 @@ export class DocumentProcessingService {
     if (!doc) {
       throw new Error(`Document ${documentId} not found`);
     }
+    const dossier = await prisma.caseDossier.findUnique({
+      where: { id: doc.caseDossierId },
+      include: { application: { select: { submittedById: true } } },
+    });
+    if (!dossier) throw new Error("Case not found for document.");
+    assertCanAccessCase(actor, dossier, "act");
 
     const job = await documentProcessingJobRepository.createOrResetJob(documentId);
     await documentRepository.updateProcessingResult(documentId, {
@@ -405,6 +418,12 @@ export class DocumentProcessingService {
     if (!doc) {
       throw new Error(`Document ${documentId} not found`);
     }
+    const dossier = await prisma.caseDossier.findUnique({
+      where: { id: doc.caseDossierId },
+      include: { application: { select: { submittedById: true } } },
+    });
+    if (!dossier) throw new Error("Case not found for document.");
+    assertCanAccessCase(actor, dossier, "document-read");
 
     const fields = doc.extractedFields || [];
 
@@ -501,8 +520,15 @@ export class DocumentProcessingService {
       throw new Error(`Application ${applicationId} not found`);
     }
 
-    if (app.applicantProfile.userId !== actor.id && actor.role === "APPLICANT") {
-      throw new Error("Forbidden: You do not own this application");
+    if (actor.role === "APPLICANT") {
+      if (app.applicantProfile.userId !== actor.id)
+        throw new Error("Forbidden: You do not own this application");
+    } else if (app.caseDossier) {
+      assertCanAccessCase(
+        actor,
+        { ...app.caseDossier, application: { submittedById: app.submittedById } },
+        "read"
+      );
     }
 
     const docs = app.caseDossier?.documents || [];

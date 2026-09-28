@@ -25,6 +25,21 @@ export class DocumentRepository {
     });
   }
 
+  async findByStoragePath(storagePath: string) {
+    return prisma.document.findFirst({
+      where: { storagePath },
+      include: {
+        caseDossier: {
+          select: {
+            id: true,
+            officerAssignedId: true,
+            application: { select: { submittedById: true } },
+          },
+        },
+      },
+    });
+  }
+
   async create(data: Prisma.DocumentCreateInput): Promise<Document> {
     return prisma.document.create({ data });
   }

@@ -13,14 +13,14 @@ export interface NormalizedBBox {
 export interface OCRWord {
   text: string;
   confidence: number; // 0.0 - 1.0
-  bbox: NormalizedBBox;
+  bbox: NormalizedBBox | null;
   pageNumber: number;
 }
 
 export interface OCRRegion {
   regionText: string;
   confidence: number;
-  bbox: NormalizedBBox;
+  bbox: NormalizedBBox | null;
   pageNumber: number;
   words: OCRWord[];
 }

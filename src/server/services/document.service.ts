@@ -12,6 +12,7 @@ export interface IDocumentService {
     mimeType: string;
     buffer: Buffer;
     uploadedById: string;
+    deficiencyId?: string;
   }): Promise<DocumentSummaryDTO>;
 
   getDocumentById(documentId: string): Promise<Document | null>;
@@ -50,6 +51,7 @@ export class DocumentService implements IDocumentService {
     mimeType: string;
     buffer: Buffer;
     uploadedById: string;
+    deficiencyId?: string;
   }): Promise<DocumentSummaryDTO> {
     const timestamp = Date.now();
     const sanitizedName = params.fileName.replace(/[^a-zA-Z0-9_\-\.]/g, "_");
@@ -72,6 +74,7 @@ export class DocumentService implements IDocumentService {
         mimeType: params.mimeType,
         fileSizeBytes: meta.sizeBytes,
         uploadedById: params.uploadedById,
+        ...(params.deficiencyId ? { deficiency: { connect: { id: params.deficiencyId } } } : {}),
         processingStatus: ProcessingStatus.PENDING,
       }
     );

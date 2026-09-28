@@ -1,49 +1,42 @@
+import { NextRequest } from "next/server";
 import { getServerAuthUser } from "@/server/auth/session";
+import { officerService } from "@/server/services/officer.service";
+import { OfficerQueueFilterSchema } from "@/server/domain/officer/validators";
+import { UserRole } from "@prisma/client";
 import { apiSuccess, apiError } from "@/server/api-response";
-import { hasRole } from "@/server/auth/roles";
-import { CaseRepository } from "@/server/repositories/case.repository";
 
-export async function GET() {
-  const user = await getServerAuthUser();
-
-  // 1. Check authentication presence
-  if (!user) {
-    return apiError(
-      "Unauthorized: Active session required to access officer case queue.",
-      "UNAUTHORIZED",
-      401
-    );
-  }
-
-  // 2. Check active account status
-  if (user.isActive === false) {
-    return apiError("Forbidden: Account is inactive or suspended.", "FORBIDDEN_INACTIVE", 403);
-  }
-
-  // 3. Server-authoritative role verification
-  if (!hasRole(user, "VERIFICATION_OFFICER")) {
-    return apiError(
-      `Forbidden: VERIFICATION_OFFICER role required. Your role: ${user.role}`,
-      "FORBIDDEN_ROLE",
-      403
-    );
-  }
-
-  // 4. Data scoping: Retrieve cases assigned to this officer (or pending triage)
+export async function GET(request: NextRequest) {
   try {
-    const caseRepo = new CaseRepository();
-    const cases = await caseRepo.listAssignedCases(user.id);
-    return apiSuccess({
-      officerId: user.id,
-      officerName: user.name,
-      totalAssigned: cases.length,
-      cases,
-    });
+    const user = await getServerAuthUser();
+    if (!user) {
+      return apiError("Unauthorized: Authentication required", "UNAUTHORIZED", 401);
+    }
+
+    if (user.role === UserRole.APPLICANT) {
+      return apiError("Forbidden: Officer access required", "FORBIDDEN", 403);
+    }
+
+    const { searchParams } = new URL(request.url);
+    const rawParams = {
+      schemeCode: searchParams.get("schemeCode") || undefined,
+      currentStage: searchParams.get("currentStage") || undefined,
+      currentState: searchParams.get("currentState") || undefined,
+      assessment: searchParams.get("assessment") || undefined,
+      hasDeficiencies: searchParams.get("hasDeficiencies") || undefined,
+      search: searchParams.get("search") || undefined,
+      assignedToMe: searchParams.get("assignedToMe") || undefined,
+      sortBy: searchParams.get("sortBy") || undefined,
+      page: searchParams.get("page") || undefined,
+      pageSize: searchParams.get("pageSize") || undefined,
+    };
+
+    const parsedFilters = OfficerQueueFilterSchema.parse(rawParams);
+    const result = await officerService.listCaseQueue(parsedFilters, user);
+
+    return apiSuccess(result);
   } catch (error) {
-    return apiError(
-      `Failed to retrieve cases: ${error instanceof Error ? error.message : "Database error"}`,
-      "CASE_RETRIEVAL_ERROR",
-      500
-    );
+    const message = (error as Error).message;
+    const isForbidden = message.includes("Forbidden");
+    return apiError(message, isForbidden ? "FORBIDDEN" : "BAD_REQUEST", isForbidden ? 403 : 400);
   }
 }

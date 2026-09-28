@@ -1,10 +1,14 @@
 import { ApplicationStatus, CaseStage, DocumentType, Prisma } from "@prisma/client";
 import { AuthenticatedUser, assertPermission } from "../auth/roles";
+import { assertCanAccessCase } from "../auth/case-access";
+import { MagicByteValidator } from "../documents/security/magic-byte.validator";
 import { applicationRepository } from "../repositories/application.repository";
 import { applicantRepository } from "../repositories/applicant.repository";
 import { schemeRepository } from "../repositories/scheme.repository";
 import { documentRepository } from "../repositories/document.repository";
 import { documentProcessingJobRepository } from "../repositories/document-processing-job.repository";
+import { deficiencyRepository } from "../repositories/deficiency.repository";
+import { auditRepository } from "../repositories/audit.repository";
 import { documentService } from "./document.service";
 import {
   ApplicantProfileDTO,
@@ -69,6 +73,12 @@ export interface IApplicationService {
     documentId: string,
     actor: AuthenticatedUser
   ): Promise<boolean>;
+  uploadCorrectionDocument(
+    applicationId: string,
+    deficiencyId: string,
+    file: { fileName: string; mimeType: string; buffer: Buffer },
+    actor: AuthenticatedUser
+  ): Promise<DocumentSummaryDTO>;
   getPreviewBuffer(
     storagePath: string,
     actor: AuthenticatedUser
@@ -562,6 +572,10 @@ export class ApplicationService implements IApplicationService {
       );
     }
 
+    const magic = MagicByteValidator.validate(file.buffer, file.mimeType);
+    if (!magic.isValid)
+      throw new Error(`Invalid document content: ${magic.error || "signature mismatch"}`);
+
     // 4. Upload file through DocumentService
     return documentService.uploadDocumentForCase({
       caseDossierId: app.caseDossier.id,
@@ -576,6 +590,64 @@ export class ApplicationService implements IApplicationService {
   /**
    * Deletes a draft document from the application's CaseDossier.
    */
+  async uploadCorrectionDocument(
+    applicationId: string,
+    deficiencyId: string,
+    file: { fileName: string; mimeType: string; buffer: Buffer },
+    actor: AuthenticatedUser
+  ): Promise<DocumentSummaryDTO> {
+    assertPermission(actor, "document:upload:own");
+    if (actor.role !== "APPLICANT")
+      throw new Error("Forbidden: Applicant correction upload required.");
+    const app = await this.assertApplicationOwnership(applicationId, actor);
+    if (app.status !== "SUBMITTED" || !app.caseDossier) {
+      throw new Error("Replacement uploads require a submitted application with an active case.");
+    }
+    const deficiency = await deficiencyRepository.findById(deficiencyId);
+    if (
+      !deficiency ||
+      deficiency.caseDossierId !== app.caseDossier.id ||
+      deficiency.status !== "OPEN"
+    ) {
+      throw new Error("Deficiency not found for this application or is no longer open.");
+    }
+    const documentType = deficiency.documentType || deficiency.targetDocument?.documentType;
+    if (!documentType)
+      throw new Error("This deficiency does not identify a replaceable document type.");
+    const requirements = app.schemeVersion
+      .documentRequirements as unknown as DocumentRequirementsSchema;
+    const requirement = requirements.requirements.find(
+      (item) => item.documentType === documentType
+    );
+    if (!requirement || !requirement.allowedMimeTypes.includes(file.mimeType)) {
+      throw new Error("Replacement file type does not match the deficiency document requirement.");
+    }
+    if (file.buffer.length > requirement.maxFileSizeMb * 1024 * 1024) {
+      throw new Error(`Replacement exceeds the ${requirement.maxFileSizeMb} MB file limit.`);
+    }
+    const magic = MagicByteValidator.validate(file.buffer, file.mimeType);
+    if (!magic.isValid)
+      throw new Error(`Invalid document content: ${magic.error || "signature mismatch"}`);
+
+    const uploaded = await documentService.uploadDocumentForCase({
+      caseDossierId: app.caseDossier.id,
+      documentType,
+      fileName: file.fileName,
+      mimeType: magic.detectedMimeType!,
+      buffer: file.buffer,
+      uploadedById: actor.id,
+      deficiencyId,
+    });
+    await auditRepository.create({
+      caseDossierId: app.caseDossier.id,
+      actorId: actor.id,
+      actorRole: "APPLICANT",
+      actionType: "DEFICIENCY_REPLACEMENT_DOCUMENT_UPLOADED",
+      payload: { deficiencyId, documentId: uploaded.id, documentType, version: uploaded.version },
+    });
+    return uploaded;
+  }
+
   async deleteDocument(
     applicationId: string,
     documentId: string,
@@ -602,28 +674,11 @@ export class ApplicationService implements IApplicationService {
     storagePath: string,
     actor: AuthenticatedUser
   ): Promise<{ buffer: Buffer; mimeType: string }> {
-    // Find document by storagePath
-    const doc = await documentRepository.findById(storagePath); // or query by storagePath
-    const allDocs = await documentRepository.listByCaseId(storagePath.split("/")[0], false);
-    const targetDoc = allDocs.find((d) => d.storagePath === storagePath);
-
-    if (!targetDoc) {
-      // Direct storagePath lookup
-      const buffer = await documentService.getDownloadStream(storagePath);
-      const isPdf = storagePath.toLowerCase().endsWith(".pdf");
-      const isPng = storagePath.toLowerCase().endsWith(".png");
-      const mimeType = isPdf ? "application/pdf" : isPng ? "image/png" : "image/jpeg";
-      return { buffer, mimeType };
-    }
-
-    // Check ownership via case dossier
-    const caseDossier = await schemeRepository.findVersionById(targetDoc.caseDossierId); // or caseRepo
-    // Download buffer
-    const buffer = await documentService.getDownloadStream(targetDoc.storagePath);
-    return {
-      buffer,
-      mimeType: targetDoc.mimeType,
-    };
+    const doc = await documentRepository.findByStoragePath(storagePath);
+    if (!doc) throw new Error("Document not found.");
+    assertCanAccessCase(actor, doc.caseDossier, "document-read");
+    const buffer = await documentService.getDownloadStream(doc.storagePath);
+    return { buffer, mimeType: doc.mimeType };
   }
 }
 

@@ -4,7 +4,10 @@ import { apiError, apiSuccess } from "@/server/api-response";
 
 export async function POST(req: NextRequest) {
   try {
-    const sweepSecret = process.env.INTERNAL_SWEEP_SECRET || "sih239_internal_sweep_secret_default";
+    const sweepSecret = process.env.INTERNAL_SWEEP_SECRET;
+    if (!sweepSecret) {
+      return apiError("Internal sweep endpoint is not configured.", "SERVICE_UNAVAILABLE", 503);
+    }
     const headerSecret = req.headers.get("x-internal-sweep-secret");
 
     if (!headerSecret || headerSecret !== sweepSecret) {

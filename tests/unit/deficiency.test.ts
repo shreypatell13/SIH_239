@@ -7,6 +7,10 @@ import {
 } from "../../src/server/domain/deficiency";
 import { deficiencyService } from "../../src/server/services/deficiency.service";
 import { prisma } from "../../src/server/db";
+import { applicationService } from "../../src/server/services/application.service";
+import { defaultStorage } from "../../src/server/storage/local-storage.adapter";
+import fs from "fs";
+import path from "path";
 import { UserRole } from "@prisma/client";
 import { AuthenticatedUser } from "../../src/server/auth/roles";
 
@@ -305,6 +309,131 @@ describe("Phase 2H: Deficiency Management & Targeted Recheck Engine", () => {
       });
       expect(updatedDef?.applicantResponseText).toContain("re-issued by Tehsildar");
       expect(updatedDef?.applicantRespondedAt).toBeDefined();
+    });
+
+    it("uploads a signed, configured replacement to a submitted case and keeps prior versions", async () => {
+      const def = await deficiencyService.issueDeficiency(
+        {
+          caseDossierId: demoCaseId,
+          issuedById: officerActor.id,
+          deficiencyType: "DOCUMENT_ILLEGIBLE",
+          documentType: "CASTE_CERTIFICATE",
+        },
+        officerActor
+      );
+      const before = await prisma.document.findMany({
+        where: { caseDossierId: demoCaseId, documentType: "CASTE_CERTIFICATE" },
+      });
+      const fixture = fs.readFileSync(
+        path.join(process.cwd(), "tests", "fixtures", "documents", "synthetic-valid.pdf")
+      );
+      let uploaded:
+        Awaited<ReturnType<typeof applicationService.uploadCorrectionDocument>> | undefined;
+      try {
+        uploaded = await applicationService.uploadCorrectionDocument(
+          demoApplicationId,
+          def.id,
+          {
+            fileName: "replacement.pdf",
+            mimeType: "application/pdf",
+            buffer: fixture,
+          },
+          applicantActor
+        );
+        expect(uploaded.version).toBeGreaterThan(0);
+        expect(uploaded.isLatestVersion).toBe(true);
+        expect(
+          await prisma.document.count({
+            where: { caseDossierId: demoCaseId, documentType: "CASTE_CERTIFICATE" },
+          })
+        ).toBe(before.length + 1);
+        expect(
+          (await prisma.document.findUnique({ where: { id: uploaded.id } }))?.deficiencyId
+        ).toBe(def.id);
+      } finally {
+        if (uploaded) {
+          await prisma.document.delete({ where: { id: uploaded.id } });
+          await defaultStorage.delete(uploaded.storagePath);
+        }
+        await prisma.document.updateMany({
+          where: { caseDossierId: demoCaseId, documentType: "CASTE_CERTIFICATE" },
+          data: { isLatestVersion: false },
+        });
+        for (const prior of before.filter((doc) => doc.isLatestVersion)) {
+          await prisma.document.update({
+            where: { id: prior.id },
+            data: { isLatestVersion: true },
+          });
+        }
+        await prisma.deficiency.delete({ where: { id: def.id } });
+      }
+    });
+
+    it("rejects another applicant and a cross-case resolving document", async () => {
+      const def = await deficiencyService.issueDeficiency(
+        {
+          caseDossierId: demoCaseId,
+          issuedById: officerActor.id,
+          deficiencyType: "DATA_MISMATCH",
+          documentType: "CASTE_CERTIFICATE",
+        },
+        officerActor
+      );
+      const intruder: AuthenticatedUser = { ...applicantActor, id: "usr_other_applicant_999" };
+      await expect(
+        applicationService.uploadCorrectionDocument(
+          demoApplicationId,
+          def.id,
+          {
+            fileName: "replacement.pdf",
+            mimeType: "application/pdf",
+            buffer: Buffer.from("%PDF-1.4 fake"),
+          },
+          intruder
+        )
+      ).rejects.toThrow(/Forbidden/);
+      const foreign = await prisma.document.findFirst({
+        where: { caseDossierId: { not: demoCaseId } },
+      });
+      if (foreign) {
+        await expect(
+          deficiencyService.respondToDeficiency(
+            demoApplicationId,
+            def.id,
+            {
+              resolvingDocumentId: foreign.id,
+            },
+            applicantActor
+          )
+        ).rejects.toThrow(/Forbidden/);
+      }
+    });
+
+    it("rejects replacement uploads when the deficiency has no document requirement", async () => {
+      const def = await deficiencyService.issueDeficiency(
+        {
+          caseDossierId: demoCaseId,
+          issuedById: officerActor.id,
+          deficiencyType: "CUSTOM",
+          description: "Please clarify the issue with this case.",
+        },
+        officerActor
+      );
+
+      await expect(
+        applicationService.uploadCorrectionDocument(
+          demoApplicationId,
+          def.id,
+          {
+            fileName: "replacement.pdf",
+            mimeType: "application/pdf",
+            buffer: fs.readFileSync(
+              path.join(process.cwd(), "tests", "fixtures", "documents", "synthetic-valid.pdf")
+            ),
+          },
+          applicantActor
+        )
+      ).rejects.toThrow(/does not identify a replaceable document type/);
     });
 
     it("allows officer to resolve or waive deficiency with mandatory remark", async () => {

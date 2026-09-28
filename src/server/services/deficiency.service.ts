@@ -9,6 +9,7 @@
 
 import { prisma } from "../db";
 import { AuthenticatedUser } from "../auth/roles";
+import { assertCanAccessCase } from "../auth/case-access";
 import {
   Deficiency,
   DeficiencyStatus,
@@ -32,13 +33,13 @@ import {
 import { generateDeficiencyExplanation } from "../domain/deficiency/explanation";
 import {
   calculateResponseDeadline,
-  evaluateDeficiencyResolution,
   isDeficiencyExpired,
   isValidDeficiencyTransition,
 } from "../domain/deficiency/policy";
 import { deficiencyRepository } from "../repositories/deficiency.repository";
 import { documentProcessingService } from "./document-processing.service";
 import { eligibilityEngineService } from "./eligibility-engine.service";
+import { evaluateDeficiencyEvidence } from "../domain/deficiency/targeted-recheck";
 
 export class DeficiencyService {
   /**
@@ -78,6 +79,7 @@ export class DeficiencyService {
     if (!caseDossier) {
       throw new Error(`CaseDossier with ID '${input.caseDossierId}' not found.`);
     }
+    if (actor.role !== "SYSTEM") assertCanAccessCase(actor, caseDossier, "act");
 
     // 3. Deduplication Check: Do not create duplicate OPEN deficiencies for the same target
     const existingOpen = await deficiencyRepository.findOpenExisting({
@@ -232,6 +234,8 @@ export class DeficiencyService {
     applicationId: string,
     actor: AuthenticatedUser
   ): Promise<ApplicantDeficiencyDTO[]> {
+    if (actor.role !== UserRole.APPLICANT)
+      throw new Error("Forbidden: Applicant-only deficiency endpoint.");
     const application = await prisma.application.findUnique({
       where: { id: applicationId },
       include: { caseDossier: true },
@@ -259,6 +263,8 @@ export class DeficiencyService {
     deficiencyId: string,
     actor: AuthenticatedUser
   ): Promise<ApplicantDeficiencyDTO> {
+    if (actor.role !== UserRole.APPLICANT)
+      throw new Error("Forbidden: Applicant-only deficiency endpoint.");
     const deficiency = await deficiencyRepository.findById(deficiencyId);
 
     if (
@@ -289,6 +295,8 @@ export class DeficiencyService {
     input: ApplicantResponseInput,
     actor: AuthenticatedUser
   ): Promise<ApplicantDeficiencyDTO> {
+    if (actor.role !== UserRole.APPLICANT)
+      throw new Error("Forbidden: Applicant-only deficiency endpoint.");
     const deficiency = await deficiencyRepository.findById(deficiencyId);
 
     if (
@@ -306,6 +314,20 @@ export class DeficiencyService {
       throw new Error("Forbidden: You cannot respond to another applicant's deficiency.");
     }
 
+    if (input.resolvingDocumentId) {
+      const doc = await prisma.document.findUnique({ where: { id: input.resolvingDocumentId } });
+      const expectedType = deficiency.documentType || deficiency.targetDocument?.documentType;
+      if (
+        !doc ||
+        doc.caseDossierId !== deficiency.caseDossierId ||
+        doc.deficiencyId !== deficiency.id ||
+        doc.uploadedById !== actor.id ||
+        !doc.isLatestVersion ||
+        (expectedType && doc.documentType !== expectedType)
+      ) {
+        throw new Error("Forbidden: Replacement evidence is not valid for this deficiency.");
+      }
+    }
     if (deficiency.status !== DeficiencyStatus.OPEN) {
       throw new Error(`Cannot respond to deficiency in status '${deficiency.status}'.`);
     }
@@ -358,75 +380,95 @@ export class DeficiencyService {
     actor?: AuthenticatedUser | { id: string; role: "SYSTEM" }
   ): Promise<Deficiency> {
     const deficiency = await deficiencyRepository.findById(deficiencyId);
-    if (!deficiency || !deficiency.caseDossier) {
+    if (!deficiency || !deficiency.caseDossier)
       throw new Error(`Deficiency '${deficiencyId}' not found.`);
+    if (actor && actor.role !== "SYSTEM") {
+      if (actor.role === UserRole.APPLICANT) {
+        if (deficiency.caseDossier.application.submittedById !== actor.id) {
+          throw new Error("Forbidden: You cannot recheck another applicant's deficiency.");
+        }
+      } else {
+        assertCanAccessCase(actor, deficiency.caseDossier, "act");
+      }
     }
 
-    // Write Audit Log: Recheck Started
     await prisma.auditLog.create({
       data: {
         caseDossierId: deficiency.caseDossierId,
         actorId: actor?.id || null,
-        actorRole: (actor?.role as UserRole) || null,
+        actorRole: actor && actor.role !== "SYSTEM" ? (actor.role as UserRole) : null,
         actionType: "DEFICIENCY_RECHECK_STARTED",
-        payload: { deficiencyId } as unknown as Prisma.InputJsonValue,
+        payload: { deficiencyId },
       },
     });
 
-    // 1. Process Replacement Document if attached
-    let latestDocStatus = "COMPLETED";
-    if (deficiency.resolutionDocuments && deficiency.resolutionDocuments.length > 0) {
-      const resolvingDoc = deficiency.resolutionDocuments[0];
-      if (
-        resolvingDoc.processingStatus === "PENDING" ||
-        resolvingDoc.processingStatus === "PROCESSING"
-      ) {
-        const job = await documentProcessingService.enqueueDocument(resolvingDoc.id);
-        await documentProcessingService.processJob(job.id);
-        const reloadedDoc = await prisma.document.findUnique({
-          where: { id: resolvingDoc.id },
-        });
-        latestDocStatus = reloadedDoc?.processingStatus || "COMPLETED";
-      } else {
-        latestDocStatus = resolvingDoc.processingStatus;
-      }
-    }
-
-    // 2. Re-evaluate Application Deterministically via Phase 2G
-    const systemActor = { id: actor?.id || "SYSTEM", role: "SYSTEM" as const };
-    const evalResult = await eligibilityEngineService.evaluateApplication(
-      deficiency.caseDossier.applicationId,
-      systemActor
+    const replacement = deficiency.resolutionDocuments.find(
+      (doc) => doc.deficiencyId === deficiency.id && doc.caseDossierId === deficiency.caseDossierId
     );
-
-    // 3. Determine if deficiency condition is resolved
-    let isConditionResolved = false;
-    if (deficiency.documentType) {
-      const checkPassed = evalResult.consistencyChecks.find(
-        (c) => c.documentType === deficiency.documentType && c.isConsistent
-      );
-      isConditionResolved = Boolean(checkPassed);
+    let documentStatus: any = replacement?.processingStatus || null;
+    let replacementEvidence: Array<{
+      fieldKey: string;
+      normalizedValue: string | null;
+      rawValue: string;
+    }> = [];
+    let targetedResult: Awaited<
+      ReturnType<typeof eligibilityEngineService.evaluateTargetedRules>
+    > | null = null;
+    if (replacement && (documentStatus === "PENDING" || documentStatus === "PROCESSING")) {
+      const job = await documentProcessingService.enqueueDocument(replacement.id);
+      await documentProcessingService.processJob(job.id);
     }
-
-    const recheckResult = evaluateDeficiencyResolution({
-      documentStatus: latestDocStatus,
-      hasPassingEvidence: isConditionResolved,
-      ruleOutcome: evalResult.assessmentStatus === "ELIGIBLE_ASSESSED" ? "PASS" : "FAIL",
+    if (replacement) {
+      const processedDocument = await prisma.document.findUnique({
+        where: { id: replacement.id },
+        include: { extractedFields: true },
+      });
+      documentStatus = processedDocument?.processingStatus || null;
+      replacementEvidence = (processedDocument?.extractedFields || []).map((field) => ({
+        fieldKey: field.fieldKey,
+        normalizedValue: field.normalizedValue,
+        rawValue: field.rawValue,
+      }));
+    }
+    if (replacement && documentStatus === "COMPLETED") {
+      targetedResult = await eligibilityEngineService.evaluateTargetedRules(
+        deficiency.caseDossier.applicationId,
+        replacement.id,
+        deficiency.ruleResult?.ruleKey,
+        actor
+      );
+    }
+    const requirementSchema = deficiency.caseDossier.application.schemeVersion
+      .documentRequirements as any;
+    const documentRequirement = requirementSchema?.requirements?.find(
+      (item: { documentType: string }) =>
+        item.documentType === (deficiency.documentType || replacement?.documentType)
+    );
+    const condition = evaluateDeficiencyEvidence({
+      deficiencyType: deficiency.deficiencyType,
+      documentStatus,
+      hasReplacement: Boolean(replacement),
+      affectedRules: targetedResult?.ruleResults || [],
+      consistencyChecks: targetedResult?.consistencyChecks || [],
+      validityWindowMonths: documentRequirement?.validityWindowMonths,
+      extractedFields: replacementEvidence,
     });
-
-    // 4. Update Deficiency Status
-    const newStatus = recheckResult.isResolved ? DeficiencyStatus.RESOLVED : DeficiencyStatus.OPEN;
-
+    const newStatus = condition.isResolved ? DeficiencyStatus.RESOLVED : DeficiencyStatus.OPEN;
+    const recheckStatus = condition.isResolved
+      ? RecheckStatus.RECHECKED_PASS
+      : condition.reviewRequired
+        ? RecheckStatus.PENDING_RECHECK
+        : RecheckStatus.RECHECKED_FAIL;
     const updated = await deficiencyRepository.updateStatus(deficiencyId, {
       status: newStatus,
-      recheckStatus: recheckResult.recheckStatus,
-      officerResolutionRemark: recheckResult.explanation,
-      resolvedAt: recheckResult.isResolved ? new Date() : null,
+      recheckStatus,
+      recheckAt: new Date(),
+      officerResolutionRemark: condition.explanation,
+      resolvedAt: condition.isResolved ? new Date() : null,
     });
 
-    // 5. Update CaseDossier if all deficiencies are now resolved
     const metrics = await deficiencyRepository.countMetrics(deficiency.caseDossierId);
-    if (metrics.open === 0) {
+    if (metrics.open === 0 && condition.isResolved) {
       await prisma.caseDossier.update({
         where: { id: deficiency.caseDossierId },
         data: {
@@ -438,27 +480,24 @@ export class DeficiencyService {
         },
       });
     }
-
-    // 6. Write Audit Log: Recheck Completed & Resolved
     await prisma.auditLog.create({
       data: {
         caseDossierId: deficiency.caseDossierId,
         actorId: actor?.id || null,
-        actorRole: (actor?.role as UserRole) || null,
-        actionType: recheckResult.isResolved
-          ? "DEFICIENCY_RESOLVED"
-          : "DEFICIENCY_RECHECK_COMPLETED",
+        actorRole: actor && actor.role !== "SYSTEM" ? (actor.role as UserRole) : null,
+        actionType: condition.isResolved ? "DEFICIENCY_RESOLVED" : "DEFICIENCY_RECHECK_COMPLETED",
         previousState: deficiency.status,
         newState: newStatus,
         payload: {
           deficiencyId,
-          recheckStatus: recheckResult.recheckStatus,
-          isResolved: recheckResult.isResolved,
-          explanation: recheckResult.explanation,
+          replacementDocumentId: replacement?.id || null,
+          affectedRuleKeys: targetedResult?.ruleResults.map((result) => result.ruleKey) || [],
+          recheckStatus,
+          isResolved: condition.isResolved,
+          explanation: condition.explanation,
         } as unknown as Prisma.InputJsonValue,
       },
     });
-
     return updated;
   }
 
@@ -470,11 +509,7 @@ export class DeficiencyService {
     input: OfficerResolutionInput,
     actor: AuthenticatedUser
   ): Promise<Deficiency> {
-    const allowedRoles: UserRole[] = [
-      UserRole.VERIFICATION_OFFICER,
-      UserRole.SCHEME_ADMIN,
-      UserRole.OPERATIONS_DIRECTOR,
-    ];
+    const allowedRoles: UserRole[] = [UserRole.VERIFICATION_OFFICER, UserRole.SCHEME_ADMIN];
     if (!allowedRoles.includes(actor.role as UserRole)) {
       throw new Error(
         `Forbidden: User with role '${actor.role}' is not authorized to resolve/waive deficiencies.`
@@ -485,6 +520,7 @@ export class DeficiencyService {
     if (!deficiency) {
       throw new Error(`Deficiency '${deficiencyId}' not found.`);
     }
+    assertCanAccessCase(actor, deficiency.caseDossier, "act");
 
     let targetStatus: DeficiencyStatus = DeficiencyStatus.RESOLVED;
     if (input.action === "WAIVE") targetStatus = DeficiencyStatus.WAIVED;
@@ -563,8 +599,15 @@ export class DeficiencyService {
       };
     }
 
-    if (actor.role === UserRole.APPLICANT && application.submittedById !== actor.id) {
-      throw new Error("Forbidden: You cannot access another applicant's summary.");
+    if (actor.role === UserRole.APPLICANT) {
+      if (application.submittedById !== actor.id)
+        throw new Error("Forbidden: You cannot access another applicant's summary.");
+    } else {
+      assertCanAccessCase(
+        actor,
+        { ...application.caseDossier, application: { submittedById: application.submittedById } },
+        "read"
+      );
     }
 
     const metrics = await deficiencyRepository.countMetrics(application.caseDossier.id);

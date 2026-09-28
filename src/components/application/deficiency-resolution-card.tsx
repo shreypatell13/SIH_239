@@ -34,6 +34,7 @@ export function DeficiencyResolutionCard({
   const [summary, setSummary] = useState<DeficiencySummaryDTO>(initialSummary);
   const [respondingId, setRespondingId] = useState<string | null>(null);
   const [clarificationText, setClarificationText] = useState("");
+  const [replacementFile, setReplacementFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -46,14 +47,17 @@ export function DeficiencyResolutionCard({
     setError(null);
     setSuccessMsg(null);
     try {
+      const body = replacementFile ? new FormData() : JSON.stringify({ clarificationText });
+      if (body instanceof FormData) {
+        body.append("clarificationText", clarificationText);
+        body.append("file", replacementFile!);
+      }
       const res = await fetch(
         `/api/applicant/applications/${applicationId}/deficiencies/${deficiencyId}/respond`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            clarificationText,
-          }),
+          ...(body instanceof FormData ? {} : { headers: { "Content-Type": "application/json" } }),
+          body,
         }
       );
 
@@ -62,9 +66,10 @@ export function DeficiencyResolutionCard({
         throw new Error(data.error || "Failed to submit response.");
       }
 
-      setSuccessMsg("Correction submitted successfully. Automated recheck executed.");
+      setSuccessMsg("Your response was submitted. The case may need officer review.");
       setRespondingId(null);
       setClarificationText("");
+      setReplacementFile(null);
 
       // Reload deficiencies
       const refRes = await fetch(`/api/applicant/applications/${applicationId}/deficiencies`);
@@ -177,10 +182,26 @@ export function DeficiencyResolutionCard({
                             rows={3}
                             className="text-xs"
                           />
+                          {def.documentType && (
+                            <label className="block text-xs text-slate-600">
+                              Replacement {def.documentType.replaceAll("_", " ")} (PDF or image)
+                              <input
+                                type="file"
+                                accept="application/pdf,image/jpeg,image/png"
+                                onChange={(event) =>
+                                  setReplacementFile(event.target.files?.[0] || null)
+                                }
+                                className="mt-1 block w-full text-xs"
+                              />
+                            </label>
+                          )}
                           <div className="flex items-center gap-2">
                             <Button
                               size="sm"
-                              disabled={loading || clarificationText.trim().length === 0}
+                              disabled={
+                                loading ||
+                                (clarificationText.trim().length === 0 && !replacementFile)
+                              }
                               onClick={() => handleRespond(def.id)}
                               className="bg-gov-slate text-xs text-white hover:bg-slate-800"
                             >
@@ -193,6 +214,7 @@ export function DeficiencyResolutionCard({
                               onClick={() => {
                                 setRespondingId(null);
                                 setClarificationText("");
+                                setReplacementFile(null);
                               }}
                               className="text-xs"
                             >
@@ -208,6 +230,7 @@ export function DeficiencyResolutionCard({
                             onClick={() => {
                               setRespondingId(def.id);
                               setClarificationText("");
+                              setReplacementFile(null);
                             }}
                             className="text-xs"
                           >
@@ -216,13 +239,18 @@ export function DeficiencyResolutionCard({
                           </Button>
 
                           {def.documentType && (
-                            <a
-                              href={`/applicant/applications/${applicationId}/documents`}
-                              className="inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRespondingId(def.id);
+                                setClarificationText("");
+                                setReplacementFile(null);
+                              }}
+                              className="inline-flex cursor-pointer items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                             >
                               <FileUp className="mr-1.5 h-3.5 w-3.5 text-slate-500" />
                               Upload Replacement Document
-                            </a>
+                            </button>
                           )}
                         </div>
                       )}

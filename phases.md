@@ -198,7 +198,7 @@
   - Deficiencies issued by rules or officers appear with clear explainability on the applicant portal.
   - Applicant can resubmit the specific document or clarification; system re-evaluates and updates case state.
   - Automated test coverage: 120 Vitest unit tests and 43 Playwright E2E tests passing.
-- **Status:** **COMPLETED** (Verified: Vitest 120/120, Playwright 43/43)
+- **Status:** **IMPLEMENTED; REMEDIATION VERIFICATION INCOMPLETE** (2026-09-29: type-check, lint, format, and build pass; Vitest is blocked by sandbox access denial and database-backed E2E cannot use PostgreSQL at `localhost:5433`). Historical completion evidence above predates this remediation pass.
 
 ---
 
@@ -214,7 +214,7 @@
 - **Acceptance Criteria:**
   - Officer can inspect evidence bounding boxes over actual uploaded documents.
   - Officer can record official decisions with state transitions and immutable audit logs.
-- **Status:** _NOT STARTED_
+- **Status:** **IN PROGRESS** (existing workspace implementation and remediation are present; database-backed acceptance has not been verified in this environment).
 
 ---
 

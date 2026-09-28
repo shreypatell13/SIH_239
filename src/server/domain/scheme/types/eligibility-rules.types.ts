@@ -34,6 +34,8 @@ export interface EligibilityRule {
   description: string;
   source: RuleSource;
   sourceField: string; // Key in form data or extracted entity e.g. "annualFamilyIncome", "casteCategory"
+  dependsOnFields?: string[];
+  dependsOnDocumentTypes?: import("@prisma/client").DocumentType[];
   operator: RuleOperator;
   threshold: string | number | string[] | boolean; // Comparison value
   failureMessage: string; // Explainable message rendered in deficiency / findings

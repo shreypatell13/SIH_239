@@ -155,9 +155,10 @@ export class DeficiencyRepository {
       recheckStatus?: RecheckStatus | null;
       officerResolutionRemark?: string | null;
       resolvedAt?: Date | null;
+      recheckAt?: Date | null;
     }
   ): Promise<Deficiency> {
-    const { status, recheckStatus, officerResolutionRemark, resolvedAt } = params;
+    const { status, recheckStatus, officerResolutionRemark, resolvedAt, recheckAt } = params;
 
     return prisma.deficiency.update({
       where: { id },
@@ -165,6 +166,7 @@ export class DeficiencyRepository {
         status,
         ...(recheckStatus !== undefined ? { recheckStatus } : {}),
         ...(officerResolutionRemark !== undefined ? { officerResolutionRemark } : {}),
+        ...(recheckAt !== undefined ? { recheckAt } : {}),
         resolvedAt: status === DeficiencyStatus.RESOLVED ? resolvedAt || new Date() : null,
       },
     });

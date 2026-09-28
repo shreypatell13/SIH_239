@@ -1,4 +1,8 @@
 import { createWorker, Worker } from "tesseract.js";
+import { spawn } from "child_process";
+import fs from "fs/promises";
+import os from "os";
+import path from "path";
 // eslint-disable-next-line
 const pdfParse = require("pdf-parse/lib/pdf-parse.js");
 import {
@@ -78,6 +82,50 @@ export class TesseractWorkerPool {
   }
 }
 
+type PdfParser = (buffer: Buffer) => Promise<{ text?: string; numpages?: number }>;
+type PdfPageRasterizer = (buffer: Buffer, pageCount: number) => Promise<Buffer[]>;
+
+async function rasterizePdfPages(buffer: Buffer, pageCount: number): Promise<Buffer[]> {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "tribalscholar-pdf-"));
+  const inputPath = path.join(tempDir, "source.pdf");
+  const outputPrefix = path.join(tempDir, "page");
+  const executable = process.env.PDF_TO_PPM_PATH || "pdftoppm";
+  try {
+    await fs.writeFile(inputPath, buffer, { flag: "wx" });
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn(
+        executable,
+        ["-f", "1", "-l", String(pageCount), "-png", "-scale-to", "2000", inputPath, outputPrefix],
+        { windowsHide: true }
+      );
+      const timer = setTimeout(
+        () => child.kill(),
+        Number(process.env.DOCUMENT_PROCESSING_TIMEOUT_MS || 90000)
+      );
+      child.once("error", (error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+      child.once("close", (code) => {
+        clearTimeout(timer);
+        if (code === 0) resolve();
+        else reject(new Error(`PDF rasterizer exited with status ${code}.`));
+      });
+    });
+    const names = (await fs.readdir(tempDir))
+      .filter((name) => /^page-\d+\.png$/i.test(name))
+      .sort(
+        (a, b) => Number(a.match(/-(\d+)\.png$/i)?.[1]) - Number(b.match(/-(\d+)\.png$/i)?.[1])
+      );
+    if (names.length === 0) throw new Error("PDF rasterizer returned no page images.");
+    return await Promise.all(
+      names.slice(0, pageCount).map((name) => fs.readFile(path.join(tempDir, name)))
+    );
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+}
+
 export class TesseractOCRProvider implements IOCRProvider {
   readonly providerName = "tesseract-js";
   readonly providerVersion = "5.1.1";
@@ -87,7 +135,10 @@ export class TesseractOCRProvider implements IOCRProvider {
 
   constructor(
     timeoutMs = parseInt(process.env.DOCUMENT_PROCESSING_TIMEOUT_MS || "90000", 10),
-    pool = TesseractWorkerPool.getInstance()
+    pool = TesseractWorkerPool.getInstance(),
+    private pdfParser: PdfParser = (buffer) => pdfParse(new Uint8Array(buffer)),
+    private pdfRasterizer: PdfPageRasterizer = rasterizePdfPages,
+    private maxPdfPages = 20
   ) {
     this.timeoutMs = timeoutMs;
     this.pool = pool;
@@ -189,7 +240,7 @@ export class TesseractOCRProvider implements IOCRProvider {
     if (normalizedMime === "application/pdf") {
       // Step 1: Attempt digital PDF text extraction via pdf-parse
       try {
-        const pdfData = await pdfParse(new Uint8Array(fileBuffer));
+        const pdfData = await this.pdfParser(fileBuffer);
         const fullText = (pdfData?.text || "").trim();
 
         // Check if digital text is present
@@ -210,14 +261,14 @@ export class TesseractOCRProvider implements IOCRProvider {
               words: words.map((w: string) => ({
                 text: w,
                 confidence: 0.95,
-                bbox: { x: 0, y: 0, width: 0, height: 0 },
+                bbox: null,
                 pageNumber: idx + 1,
               })),
               regions: [
                 {
                   regionText: pageText,
                   confidence: 0.95,
-                  bbox: { x: 0, y: 0, width: 1, height: 1 },
+                  bbox: null,
                   pageNumber: idx + 1,
                   words: [],
                 },
@@ -240,22 +291,22 @@ export class TesseractOCRProvider implements IOCRProvider {
         // pdf-parse failed, fall through to fallback
       }
 
-      // If digital text was sparse or pdf-parse failed, this is a scanned PDF.
-      // In prototype without heavy native canvas bindings, extract what is available or perform fallback
+      // Scanned PDF: rasterize a bounded number of pages, then OCR each page.
+      const parsed = await this.pdfParser(fileBuffer).catch(() => ({ numpages: 1 }));
+      const pageLimit = Math.max(1, Math.min(parsed.numpages || 1, this.maxPdfPages));
+      const images = await this.pdfRasterizer(fileBuffer, pageLimit);
+      const pages: PageOCRResult[] = [];
+      for (let index = 0; index < images.length; index++) {
+        pages.push(await this.extractFromImage(images[index], index + 1, hints));
+      }
+      if (pages.length === 0) throw new Error("Scanned PDF produced no OCR pages.");
       return {
-        pages: [
-          {
-            pageNumber: 1,
-            rawText: "",
-            confidence: 0.3, // Low confidence to trigger review
-            wordCount: 0,
-            words: [],
-            regions: [],
-          },
-        ],
-        fullText: "",
-        averageConfidence: 0.3,
-        detectedLanguages: [],
+        pages,
+        fullText: pages.map((page) => page.rawText).join("\n\n"),
+        averageConfidence: pages.reduce((sum, page) => sum + page.confidence, 0) / pages.length,
+        detectedLanguages: Array.from(
+          new Set(pages.map((page) => page.detectedLanguage).filter(Boolean) as string[])
+        ),
         processingTimeMs: Date.now() - startTime,
         providerName: this.providerName,
         providerVersion: this.providerVersion,

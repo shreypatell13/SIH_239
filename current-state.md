@@ -1,86 +1,45 @@
 # Live Project State — TribalScholar AI
 
-**System:** TribalScholar AI (SIH Problem Statement 26239)  
-**Tracking Mode:** Persistent Cross-Agent Memory
+**Project:** TribalScholar AI (SIH Problem Statement 26239)
+**Last updated:** 2026-09-29
 
----
+## Current status
 
 - **Current phase:** Phase 2 (Actual Engineering)
-- **Current sub-phase:** Phase 2H (Deficiency Management & Targeted Recheck Engine)
-- **Current task:** Verification, testing, and documentation finalized for Phase 2H
-- **Status:** Phase 2H COMPLETED & FULLY VERIFIED; Ready for Phase 2I
-- **Last stable commit:** Pending commit for Phase 2H
-- **Last completed work:**
-  - **Prisma Schema & Migration (`prisma/schema.prisma`)**:
-    - Enhanced `Deficiency` model with `applicantResponseText` and `applicantRespondedAt` timestamp.
-    - Applied migration `20260928153002_phase_2h_deficiency_workflow`.
-  - **Deficiency Domain & Policies (`src/server/domain/deficiency/`)**:
-    - `types.ts`: DTOs (`ApplicantDeficiencyDTO`, `OfficerDeficiencyDTO`, `DeficiencySummaryDTO`, `RemedyAction`).
-    - `explanation.ts`: Plain-English, respectful explanation and title generator for all `DeficiencyType`s without technical jargon or accusatory language.
-    - `policy.ts`: State machine transition validator (`isValidDeficiencyTransition`), response deadline calculator (`calculateResponseDeadline`), expiry check, and deterministic resolution evaluator (`evaluateDeficiencyResolution`).
-    - `index.ts`: Barrel export.
-  - **Repository & Service Layer (`src/server/repositories/`, `src/server/services/`)**:
-    - `deficiency.repository.ts`: Full CRUD, deduplication query (`findOpenExisting`), response recording, and metric counts.
-    - `deficiency.service.ts`:
-      - `issueDeficiency`: Creates non-duplicate, explainable deficiencies, transitions `CaseDossier` to `DEFICIENCY_PENDING` / `ACTION_REQUIRED`, logs `DEFICIENCY_ISSUED`.
-      - `detectAndCreateDeficiencies`: Converts Phase 2F/2G findings into actionable candidate deficiencies.
-      - `listApplicantDeficiencies` & `getApplicantDeficiency`: Sanitized DTO views with strict applicant ownership validation.
-      - `respondToDeficiency`: Records applicant remedy/clarification, transitions `CaseDossier` to `IN_PROGRESS`, triggers targeted recheck.
-      - `executeTargetedRecheck`: Synchronously executes Phase 2F processing on replacement documents, evaluates affected Phase 2G eligibility rules via system actor, determines resolution, transitions `CaseDossier` back to `OFFICER_REVIEW` if all open deficiencies are resolved.
-      - `officerResolveOrWaive`: Officer manual resolution / waiver / reopening with mandatory remark validation and audit logging.
-      - `getDeficiencySummary`: Summary KPIs for applicant/officer views.
-  - **API Endpoints (`src/app/api/`)**:
-    - `GET` / `POST` `/api/applicant/applications/[id]/deficiencies`
-    - `GET` `/api/applicant/applications/[id]/deficiencies/[deficiencyId]`
-    - `POST` `/api/applicant/applications/[id]/deficiencies/[deficiencyId]/respond`
-    - `GET` / `POST` `/api/officer/applications/[id]/deficiencies`
-    - `PATCH` `/api/officer/deficiencies/[deficiencyId]`
-    - `POST` `/api/officer/deficiencies/[deficiencyId]/recheck`
-  - **Frontend UI Components & Pages (`src/components/application/`, `src/app/applicant/`)**:
-    - `deficiency-resolution-card.tsx`: Interactive card with remedy actions, deadlines, written clarification input, replacement upload links, targeted recheck status indicators, and resolved history.
-    - `src/app/applicant/applications/[id]/deficiencies/page.tsx`: Dedicated remediation page.
-    - `explainable-case-status.tsx`: Integrated action button/link to `/applicant/applications/[id]/deficiencies` when blockers or deficiencies exist.
-  - **Automated Verification**:
-    - Vitest: **120/120 unit tests passing** across 12 test suites (`deficiency.test.ts`, `eligibility-engine.test.ts`, `document-intelligence.test.ts`, `applicant-flow.test.ts`, `scheme-studio.test.ts`, `auth.test.ts`, `domain.test.ts`, `ocr-provider.test.ts`, `rbac.test.ts`, `rules.test.ts`, `storage.test.ts`, `utils.test.ts`).
-    - Playwright: **43/43 E2E tests passing** across 6 test suites (`deficiency.spec.ts`, `eligibility-engine.spec.ts`, `document-intelligence.spec.ts`, `applicant-flow.spec.ts`, `auth-rbac.spec.ts`, `foundation.spec.ts`, `scheme-studio.spec.ts`).
-    - Next.js build: **22/22 routes built cleanly**.
-    - Type check: **0 TypeScript errors**.
-    - ESLint: **0 warnings or errors**.
-    - Prettier: **All files formatted**.
-- **Current working features:**
-  - Complete `Detect → Explain → Correct → Recheck → Resolve` innovation loop.
-  - Plain-English, empathetic deficiency explanations without punitive wording.
-  - Targeted rechecks isolating only replacement documents and affected rules.
-  - Deterministic evaluation of SchemeVersion eligibility rules DSL (Phase 2G).
-  - Document intelligence and multilingual OCR pipeline (Phase 2F).
-  - Applicant dynamic form wizard, checklist, and readiness engine (Phase 2E).
-  - Scheme Studio & Declarative Configuration Engine (Phase 2D).
-  - NextAuth credentials RBAC & server-authoritative middleware (Phase 2C).
-  - PostgreSQL database schema with 13 domain models and 13 enums (Phase 2B).
-- **Current blockers:** None
-- **Current errors:** None
-- **Files recently created / changed:**
-  - `src/server/domain/eligibility/types.ts`
-  - `src/server/domain/eligibility/operators.ts`
-  - `src/server/domain/eligibility/input-resolver.ts`
-  - `src/server/domain/eligibility/ambiguity.ts`
-  - `src/server/domain/eligibility/consistency-engine.ts`
-  - `src/server/domain/eligibility/index.ts`
-  - `src/server/repositories/rule-result.repository.ts`
-  - `src/server/services/eligibility-engine.service.ts`
-  - `src/app/api/officer/applications/[id]/evaluate/route.ts`
-  - `src/app/api/officer/applications/[id]/eligibility/route.ts`
-  - `src/components/officer/eligibility-assessment-card.tsx`
-  - `tests/unit/eligibility-engine.test.ts`
-  - `tests/e2e/eligibility-engine.spec.ts`
-  - `tests/e2e/document-intelligence.spec.ts`
-  - `tests/e2e/applicant-flow.spec.ts`
-  - `phases.md`
-  - `current-state.md`
-- **Tests passing:** 104/104 Vitest unit tests, 37/37 Playwright E2E tests, 0 lint errors, 0 format issues, 0 TypeScript errors, 22/22 routes built cleanly
-- **Tests failing:** 0
-- **Database verification status:**
-  - Migrations applied: YES (`20260928000000_phase_2b_domain`, `20260927211511_phase_2d_scheme_studio`)
-  - Seed executed: YES (Demo personas, NFST v1, NOS v1, synthetic draft/submitted cases, documents, extracted fields)
-- **Exact next step:** Phase 2G is complete and verified. Awaiting user instructions before starting Phase 2H (Deficiency Management & Targeted Recheck Engine).
-- **Last verified:** 2026-09-28 (Local System Time)
+- **Current sub-phase:** Phase 2I remediation; Phase 2J work already exists in the working tree and remains out of scope for this pass.
+- **Last stable commit:** `703b582 feat(phase-2h): implement deficiency management and targeted recheck workflow`
+- **Working tree:** Contains existing uncommitted Phase 2I/2J work plus remediation changes. Do not reset or discard it.
+- **Schema:** No schema change was needed for this remediation.
+
+## Remediation implemented
+
+- Central case authorization now guards document preview, officer case detail/actions, and sensitive service operations; officer assignment is enforced atomically and queue search remains ANDed with scope.
+- Applicants can upload a replacement document against an open deficiency on a submitted application. The upload is scoped to the owning applicant and requirement, validates MIME/size/signature, versions the document, and records provenance/audit history.
+- Targeted correction rechecks select configured rules related to the changed document/fields and evaluate deficiency-specific evidence. Rule metadata supports `dependsOnFields` and `dependsOnDocumentTypes`; missing mappings remain officer-review cases.
+- Officer stage decisions are server-derived, authorized, state-validated, and audited transactionally. There is no AI approval/rejection path.
+- Scanned PDFs with no usable text are rasterized page-by-page for OCR, with a page cap, timeout, temporary-file cleanup, and honest nullable bounding boxes.
+- The internal OCR sweep fails closed when its secret is not configured. Unused legacy hardcoded rule/workflow services were removed.
+
+## Verification on 2026-09-29
+
+- `npm run type-check`: PASS.
+- `npm run lint`: PASS, no warnings or errors.
+- `npm run format:check`: PASS.
+- `npm run build`: PASS (Next build exit code 0); static generation logged inability to connect to PostgreSQL at `localhost:5433`.
+- `npm test`: NOT VERIFIABLE. Vitest/esbuild could not traverse `../../..` due sandbox access denial while loading `vitest.config.ts`.
+- `npm run test:e2e`: NOT VERIFIABLE. The run was stopped after the initial database-backed tests repeatedly failed because seeded PostgreSQL at `localhost:5433` is unavailable; unauthenticated middleware guard checks did pass before the failures.
+- No test suite is represented as passing unless it completed successfully in this environment.
+
+## Phase state
+
+- **2A–2G:** Historical phase records remain in `phases.md`; this remediation pass did not re-run their full acceptance suites.
+- **2H:** Remediation implemented; database-dependent and unit-suite verification remains limited by the environment.
+- **2I:** Existing workspace code plus decision/scope remediation is present; database-backed acceptance remains unverified.
+- **2J:** Existing working-tree work is preserved and was not extended as part of this task.
+
+## Known limitations
+
+- PostgreSQL was unavailable at `localhost:5433` during build/E2E verification.
+- Vitest could not start under the current filesystem sandbox.
+- `pdftoppm` must be installed or `PDF_TO_PPM_PATH` configured for scanned-PDF rasterization; OCR accuracy and coordinates depend on the provider and are not guaranteed.
+- This remediation is not a production security certification.

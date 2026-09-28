@@ -21,7 +21,9 @@ export async function GET(_req: NextRequest, { params }: { params: { key: string
       status: 200,
       headers,
     });
-  } catch {
-    return new NextResponse("Document Not Found or Access Denied", { status: 404 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Document preview failed";
+    const status = message.includes("Forbidden") ? 403 : 404;
+    return new NextResponse(status === 403 ? "Forbidden" : "Document not found", { status });
   }
 }
