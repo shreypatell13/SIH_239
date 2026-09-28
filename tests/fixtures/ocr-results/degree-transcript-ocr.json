@@ -1,0 +1,19 @@
+{
+  "fullText": "UNIVERSITY OF DELHI\nSTATEMENT OF MARKS\nBACHELOR OF TECHNOLOGY IN COMPUTER SCIENCE\n\nCandidate's Name: RAMESH KUMAR MEENA\nRoll No: 2020CS1092\nYear of Passing: 2024\nCumulative Grade Point Average (CGPA): 7.82 / 10\nAggregate Marks Percentage: 74.28 %\nResult: FIRST DIVISION WITH DISTINCTION\n\nController of Examinations: UNIVERSITY OF DELHI",
+  "averageConfidence": 0.93,
+  "detectedLanguages": ["eng"],
+  "processingTimeMs": 410,
+  "providerName": "tesseract-js",
+  "providerVersion": "5.1.1",
+  "pages": [
+    {
+      "pageNumber": 1,
+      "rawText": "UNIVERSITY OF DELHI\nSTATEMENT OF MARKS\nBACHELOR OF TECHNOLOGY IN COMPUTER SCIENCE\n\nCandidate's Name: RAMESH KUMAR MEENA\nRoll No: 2020CS1092\nYear of Passing: 2024\nCumulative Grade Point Average (CGPA): 7.82 / 10\nAggregate Marks Percentage: 74.28 %\nResult: FIRST DIVISION WITH DISTINCTION\n\nController of Examinations: UNIVERSITY OF DELHI",
+      "confidence": 0.93,
+      "detectedLanguage": "eng",
+      "wordCount": 38,
+      "words": [],
+      "regions": []
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "fullText": "REVENUE DEPARTMENT\nGOVERNMENT OF RAJASTHAN\nINCOME CERTIFICATE\nCertificate Ref: INC/2024/7789\nFinancial Year: 2023-2024\nDate of Issue: 20/05/2024\n\nThis is to certify that RAMESH KUMAR MEENA, son of SHRI RAMESHWAR MEENA, resident of Bassi, Jaipur. The total Annual Family Income of the applicant from all sources is Rs. 4,50,000/- (Rupees Four Lakh Fifty Thousand Only) for the financial year 2023-2024.\n\nIssuing Authority: TEHSILDAR, REVENUE DEPARTMENT",
+  "averageConfidence": 0.91,
+  "detectedLanguages": ["eng"],
+  "processingTimeMs": 380,
+  "providerName": "tesseract-js",
+  "providerVersion": "5.1.1",
+  "pages": [
+    {
+      "pageNumber": 1,
+      "rawText": "REVENUE DEPARTMENT\nGOVERNMENT OF RAJASTHAN\nINCOME CERTIFICATE\nCertificate Ref: INC/2024/7789\nFinancial Year: 2023-2024\nDate of Issue: 20/05/2024\n\nThis is to certify that RAMESH KUMAR MEENA, son of SHRI RAMESHWAR MEENA, resident of Bassi, Jaipur. The total Annual Family Income of the applicant from all sources is Rs. 4,50,000/- (Rupees Four Lakh Fifty Thousand Only) for the financial year 2023-2024.\n\nIssuing Authority: TEHSILDAR, REVENUE DEPARTMENT",
+      "confidence": 0.91,
+      "detectedLanguage": "eng",
+      "wordCount": 48,
+      "words": [
+        {
+          "text": "Rs.",
+          "confidence": 0.96,
+          "bbox": { "x": 0.52, "y": 0.48, "width": 0.04, "height": 0.02 },
+          "pageNumber": 1
+        },
+        {
+          "text": "4,50,000/-",
+          "confidence": 0.95,
+          "bbox": { "x": 0.57, "y": 0.48, "width": 0.1, "height": 0.02 },
+          "pageNumber": 1
+        }
+      ],
+      "regions": [
+        {
+          "regionText": "The total Annual Family Income of the applicant from all sources is Rs. 4,50,000/- for the financial year 2023-2024.",
+          "confidence": 0.91,
+          "bbox": { "x": 0.1, "y": 0.45, "width": 0.8, "height": 0.1 },
+          "pageNumber": 1,
+          "words": []
+        }
+      ]
+    }
+  ]
+}

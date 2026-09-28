@@ -66,6 +66,7 @@ enum ProcessingStatus {
   PENDING
   PROCESSING
   COMPLETED
+  REVIEW_REQUIRED
   FAILED
 }
 
@@ -275,6 +276,7 @@ model Document {
   createdAt                DateTime           @default(now())
   updatedAt                DateTime           @updatedAt
   extractedFields          ExtractedField[]
+  processingJob            DocumentProcessingJob?
   targetedDeficiencies     Deficiency[]       @relation("DeficiencyTargetDocument")
 
   @@index([caseDossierId, documentType, isLatestVersion])
@@ -295,11 +297,33 @@ model ExtractedField {
   boundingBoxWidth  Float?
   boundingBoxHeight Float?
   sourceSnippet     String?
+  extractorProvider String?        // e.g. "tesseract-js", "pdf-parse"
+  extractorVersion  String?        // e.g. "5.1.1"
+  extractionMethod  String?        // e.g. "REGEX", "KEYWORD_PROXIMITY", "POSITIONAL", "MRZ"
   extractedBy       ExtractorType  @default(AI)
   createdAt         DateTime       @default(now())
 
   @@index([documentId, fieldKey])
   @@map("extracted_fields")
+}
+
+model DocumentProcessingJob {
+  id             String           @id @default(uuid())
+  documentId     String           @unique
+  document       Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  status         ProcessingStatus @default(PENDING)
+  attemptCount   Int              @default(0)
+  maxAttempts    Int              @default(3)
+  lastError      String?
+  failureReason  String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  nextRetryAt    DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@map("document_processing_jobs")
 }
 
 model RuleResult {

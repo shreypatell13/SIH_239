@@ -272,9 +272,46 @@ export function DocumentUploadCard({
               </span>
             </div>
           </div>
-          <Badge variant="outline" className="text-[10px] text-slate-600">
-            Awaiting Verification (Phase 2F)
-          </Badge>
+          {uploadedDocument.processingStatus === "PENDING" && (
+            <Badge
+              variant="outline"
+              className="border-amber-200 bg-amber-50 text-[10px] text-amber-700"
+            >
+              Your document is queued for processing.
+            </Badge>
+          )}
+          {uploadedDocument.processingStatus === "PROCESSING" && (
+            <Badge
+              variant="outline"
+              className="border-blue-200 bg-blue-50 text-[10px] text-blue-700"
+            >
+              Your document is being analysed.
+            </Badge>
+          )}
+          {uploadedDocument.processingStatus === "COMPLETED" && (
+            <Badge
+              variant="outline"
+              className="border-emerald-200 bg-emerald-50 text-[10px] text-emerald-700"
+            >
+              Document processing completed.
+            </Badge>
+          )}
+          {uploadedDocument.processingStatus === "REVIEW_REQUIRED" && (
+            <Badge
+              variant="outline"
+              className="border-amber-200 bg-amber-50 text-[10px] text-amber-700"
+            >
+              Our team is reviewing this document. No action is needed yet.
+            </Badge>
+          )}
+          {uploadedDocument.processingStatus === "FAILED" && (
+            <Badge
+              variant="outline"
+              className="border-rose-200 bg-rose-50 text-[10px] text-rose-700"
+            >
+              {"We couldn't process this document. Please upload a clearer copy."}
+            </Badge>
+          )}
         </div>
       )}
 

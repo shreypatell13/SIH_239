@@ -6,85 +6,72 @@
 ---
 
 - **Current phase:** Phase 2 (Actual Engineering)
-- **Current sub-phase:** Phase 2E (Applicant Dynamic Application Flow & Checklist)
-- **Current task:** Verification, testing, and documentation finalized for Phase 2E
-- **Status:** Phase 2E COMPLETED & FULLY VERIFIED; Ready for Phase 2F
-- **Last stable commit:** Pending commit for Phase 2E
+- **Current sub-phase:** Phase 2G (Deterministic Eligibility & Evidence Verification Engine)
+- **Current task:** Verification, testing, and documentation finalized for Phase 2G
+- **Status:** Phase 2G COMPLETED & FULLY VERIFIED; Ready for Phase 2H
+- **Last stable commit:** Pending commit for Phase 2G
 - **Last completed work:**
-  - **Dynamic Application Flow & Form Wizard**:
-    - Built dynamic form schema renderer (`src/components/application/dynamic-form-wizard.tsx`, `form-section-renderer.tsx`, `form-field-renderer.tsx`) rendering all field types (text, number, select, radio, date, textarea) without scheme-specific hardcoding.
-    - Implemented client and server conditional visibility evaluation (`evaluateCondition` and `sanitizeHiddenFieldValues`).
-    - Implemented auto-save debouncing with dirty-state indicator.
-  - **Document Checklist & Pre-Flight Validation**:
-    - Created document checklist matrix component (`src/components/application/document-checklist.tsx`, `document-upload-card.tsx`).
-    - Enforced pre-flight MIME type, extension, and file size checks (both client-side and server-side).
-    - Implemented secure preview route (`/api/documents/preview/[...key]`) streaming sanitized file buffers with proper Content-Type headers.
-    - Added document deletion and replacement with version archiving.
-  - **Pre-Submission Readiness Engine**:
-    - Built `evaluateApplicationReadiness` (`src/server/domain/application/readiness.ts`) analyzing mandatory fields, document matrix, window deadlines, and blocking reasons.
-    - Implemented visual readiness report component (`src/components/application/readiness-report.tsx`).
-  - **Explainable Case Status & Early Dossier Lifecycle**:
-    - Enforced early `CaseDossier` creation in `CaseStage.DRAFT` atomically with `Application` draft.
-    - Implemented 5-component transparent status engine (`getExplainableCaseStatus` in `src/server/domain/application/explainable-status.ts`): (1) Current Stage, (2) Current State, (3) Responsible Actor, (4) Next Expected Action, (5) Estimated SLA Timeline.
-    - Built applicant explainable status timeline UI (`/applicant/applications/[id]/status`).
-  - **Server-Authoritative Application Service & RBAC**:
-    - Implemented `ApplicationService` (`src/server/services/application.service.ts`) enforcing candidate profile ownership, draft mutations, document attachments, readiness verification, atomic submission, and withdrawal.
-    - Implemented `ApplicationRepository` with Prisma transactions, sequential number generators (`APP-YYYYMMDD-XXXX` and `CASE-YYYYMMDD-XXXX`), and immutable audit logging.
-  - **Applicant Pages & Route Handlers**:
-    - `/applicant`: Applicant Dashboard showing profile summary, active draft/submitted applications, and scheme recommendations.
-    - `/applicant/profile`: Personal details, ST certificate, income, and bank pre-fill details.
-    - `/applicant/schemes`: Browse active schemes.
-    - `/applicant/schemes/[code]`: Scheme details, guidelines, documents, and 3-question eligibility pre-screener.
-    - `/applicant/applications/new/[schemeCode]`: One-click draft creation with early dossier.
-    - `/applicant/applications/[id]`: Dynamic Form Wizard with section tabs.
-    - `/applicant/applications/[id]/documents`: Document upload matrix and checklist.
-    - `/applicant/applications/[id]/readiness`: Pre-submission readiness score and submit trigger.
-    - `/applicant/applications/[id]/status`: Explainable tracking timeline.
-    - 10 Route Handlers under `/api/applicant/**` and `/api/documents/preview/**`.
+  - **Deterministic Eligibility Engine Domain (`src/server/domain/eligibility/`)**:
+    - `operators.ts`: Pure, deterministic evaluation of all 11 DSL operators (`EQUALS`, `NOT_EQUALS`, `LESS_THAN`, `LESS_THAN_OR_EQUALS`, `GREATER_THAN`, `GREATER_THAN_OR_EQUALS`, `IN`, `NOT_IN`, `MATCHES_REGEX`, `IS_PRESENT`, `WITHIN_MONTHS`) with safe numeric/date parsing and explainable failure templates (`{computedValue}`, `{expectedValue}`, `{threshold}`).
+    - `operators.ts`: ST category relaxation support (`stRelaxation.addToThreshold`) automatically applied to standard thresholds (e.g. +5 years for ST age limit) with explainable reasoning badges.
+    - `input-resolver.ts`: Deterministic resolver for `FORM_DATA`, `EXTRACTED_FIELD` (across latest dossier documents), and `COMPUTED` fields (e.g. exact age in years from date of birth relative to application date, qualifying scores, ST assertions).
+    - `ambiguity.ts`: Strict adherence to the non-negotiable principle that **low confidence is NOT a failure**. Extractions with `confidenceScore < 0.50`, degraded documents in `REVIEW_REQUIRED` / `FAILED` state, or conflicting extractions evaluate to `RuleOutcome.AMBIGUOUS` (never `FAIL`).
+    - `consistency-engine.ts`: Cross-document consistency comparator with NFKC Unicode normalization, honorific stripping (Mr., Ms., Shri, Smt., Dr., Kumari, etc.), whitespace collapse, and Levenshtein token similarity for applicant names, annual income tolerances, ST category verification, and passport number matching.
+  - **Rule Result Repository & Service Layer (`src/server/repositories/`, `src/server/services/`)**:
+    - `rule-result.repository.ts`: Batch creates `RuleResult` entities grouped by unique `runId`, retrieves latest evaluation runs for case dossiers, and tracks evaluation pass histories.
+    - `eligibility-engine.service.ts`:
+      - Evaluates applications deterministically against their strictly pinned `SchemeVersion.eligibilityRules` DSL without generative AI, eval(), or dynamic SQL.
+      - Produces high-level system assessments (`ELIGIBLE_ASSESSED`, `NOT_ELIGIBLE_ASSESSED`, `REVIEW_REQUIRED`) without autonomously deciding final application status or creating deficiencies (owned exclusively by Phase 2H).
+      - Enforces server-side RBAC: `VERIFICATION_OFFICER`, `SCHEME_ADMIN`, `OPERATIONS_DIRECTOR`, and `SYSTEM` background execution.
+      - Writes immutable audit log entries (`ELIGIBILITY_EVALUATION_COMPLETED`) with detailed summary payloads.
+  - **API Endpoints (`src/app/api/officer/applications/[id]/`)**:
+    - `POST /api/officer/applications/[id]/evaluate`: Authenticated officer trigger endpoint to execute deterministic rule evaluation.
+    - `GET /api/officer/applications/[id]/eligibility`: Authenticated endpoint to retrieve latest evaluation run, rule breakdowns, and consistency results.
+  - **Interactive Explainable UI (`src/components/officer/eligibility-assessment-card.tsx`)**:
+    - Renders assessment status badges (`ELIGIBLE_ASSESSED`, `NOT_ELIGIBLE_ASSESSED`, `REVIEW_REQUIRED`), KPI metric counts, pinned scheme version metadata, interactive re-evaluate trigger, rule-by-rule explainable table, and cross-document consistency verification matrix.
   - **Automated Verification**:
-    - Vitest: 65/65 unit tests passing across 8 suites (`applicant-flow.test.ts`, `scheme-studio.test.ts`, `auth.test.ts`, `domain.test.ts`, `rbac.test.ts`, `rules.test.ts`, `storage.test.ts`, `utils.test.ts`).
-    - Playwright: 26/26 E2E tests passing across 4 suites (`applicant-flow.spec.ts`, `auth-rbac.spec.ts`, `foundation.spec.ts`, `scheme-studio.spec.ts`).
-    - Next.js build: 21/21 static/dynamic pages compiled cleanly.
-    - Type check: 0 TypeScript errors.
-    - ESLint: 0 warnings or errors.
-    - Prettier: All files formatted.
+    - Vitest: **104/104 unit tests passing** across 11 test suites (`eligibility-engine.test.ts`, `document-intelligence.test.ts`, `applicant-flow.test.ts`, `scheme-studio.test.ts`, `auth.test.ts`, `domain.test.ts`, `ocr-provider.test.ts`, `rbac.test.ts`, `rules.test.ts`, `storage.test.ts`, `utils.test.ts`).
+    - Playwright: **37/37 E2E tests passing** across 5 test suites (`eligibility-engine.spec.ts`, `document-intelligence.spec.ts`, `applicant-flow.spec.ts`, `auth-rbac.spec.ts`, `foundation.spec.ts`, `scheme-studio.spec.ts`).
+    - Next.js build: **22/22 routes built cleanly**.
+    - Type check: **0 TypeScript errors**.
+    - ESLint: **0 warnings or errors**.
+    - Prettier: **All files formatted**.
 - **Current working features:**
-  - Declarative dynamic form wizard consuming FormSchema DSL.
-  - Document checklist matrix with client/server validation and preview.
-  - Pre-submission readiness engine preventing invalid submissions.
-  - Explainable 5-component case status tracker.
-  - Atomic draft creation with early CaseDossier (CaseStage.DRAFT).
-  - Scheme comparison and interactive pre-screener.
-  - Candidate profile management with pre-fill capability.
-  - Multi-tab Scheme Studio editor for scheme administrators.
-  - Role-based access control with NextAuth v4 credentials and server-authoritative middleware/guards.
-  - 21 Next.js App Router routes compiled cleanly.
+  - Deterministic evaluation of SchemeVersion eligibility rules DSL without AI/probabilistic execution.
+  - Pinned scheme version rule enforcement.
+  - ST category threshold relaxation engine.
+  - Low confidence and degraded document ambiguity routing.
+  - Cross-document applicant name, income, caste, and passport consistency checks.
+  - Interactive officer evaluation card with explainable rule metrics and evidence provenance.
+  - Document intelligence and multilingual OCR pipeline (Phase 2F).
+  - Applicant dynamic form wizard, checklist, and readiness engine (Phase 2E).
+  - Scheme Studio & Declarative Configuration Engine (Phase 2D).
+  - NextAuth credentials RBAC & server-authoritative middleware (Phase 2C).
+  - PostgreSQL database schema with 13 domain models and 13 enums (Phase 2B).
 - **Current blockers:** None
 - **Current errors:** None
-- **Files recently changed:**
-  - `src/server/domain/application/**`
-  - `src/server/repositories/application.repository.ts`
-  - `src/server/repositories/document.repository.ts`
-  - `src/server/repositories/scheme.repository.ts`
-  - `src/server/repositories/index.ts`
-  - `src/server/services/application.service.ts`
-  - `src/server/services/document.service.ts`
-  - `src/app/api/applicant/**`
-  - `src/app/api/documents/preview/[...key]/route.ts`
-  - `src/components/ui/input.tsx`, `label.tsx`, `textarea.tsx`
-  - `src/components/application/**`
-  - `src/app/applicant/**`
-  - `prisma/seed.ts`
-  - `tests/unit/applicant-flow.test.ts`
+- **Files recently created / changed:**
+  - `src/server/domain/eligibility/types.ts`
+  - `src/server/domain/eligibility/operators.ts`
+  - `src/server/domain/eligibility/input-resolver.ts`
+  - `src/server/domain/eligibility/ambiguity.ts`
+  - `src/server/domain/eligibility/consistency-engine.ts`
+  - `src/server/domain/eligibility/index.ts`
+  - `src/server/repositories/rule-result.repository.ts`
+  - `src/server/services/eligibility-engine.service.ts`
+  - `src/app/api/officer/applications/[id]/evaluate/route.ts`
+  - `src/app/api/officer/applications/[id]/eligibility/route.ts`
+  - `src/components/officer/eligibility-assessment-card.tsx`
+  - `tests/unit/eligibility-engine.test.ts`
+  - `tests/e2e/eligibility-engine.spec.ts`
+  - `tests/e2e/document-intelligence.spec.ts`
   - `tests/e2e/applicant-flow.spec.ts`
   - `phases.md`
   - `current-state.md`
-- **Tests run:** Vitest (8 test files, 65 tests), Playwright (4 test files, 26 tests), ESLint (`next lint`), Prettier (`prettier --check .`), TypeScript check (`tsc --noEmit`), Next.js production build (`next build`)
-- **Tests passing:** 65/65 Vitest unit tests, 26/26 Playwright E2E tests, 0 lint errors, 0 format issues, 0 TypeScript errors, 21/21 routes built
+- **Tests passing:** 104/104 Vitest unit tests, 37/37 Playwright E2E tests, 0 lint errors, 0 format issues, 0 TypeScript errors, 22/22 routes built cleanly
 - **Tests failing:** 0
 - **Database verification status:**
   - Migrations applied: YES (`20260928000000_phase_2b_domain`, `20260927211511_phase_2d_scheme_studio`)
-  - Seed executed: YES (`prisma db seed` with demo personas, active schemes, draft NFST application + dossier, submitted NOS application + dossier + documents + audit logs)
-  - Active schemes: NFST v1, NOS v1
-- **Exact next step:** Phase 2E is complete. Awaiting user instructions before starting Phase 2F (Document Intelligence & Multilingual OCR Pipeline).
+  - Seed executed: YES (Demo personas, NFST v1, NOS v1, synthetic draft/submitted cases, documents, extracted fields)
+- **Exact next step:** Phase 2G is complete and verified. Awaiting user instructions before starting Phase 2H (Deficiency Management & Targeted Recheck Engine).
 - **Last verified:** 2026-09-28 (Local System Time)

@@ -2,7 +2,11 @@ import { prisma } from "../db";
 import { AuditLog, Prisma } from "@prisma/client";
 
 export class AuditRepository {
-  async log(data: Prisma.AuditLogCreateInput): Promise<AuditLog> {
+  async log(data: Prisma.AuditLogUncheckedCreateInput): Promise<AuditLog> {
+    return prisma.auditLog.create({ data });
+  }
+
+  async create(data: Prisma.AuditLogUncheckedCreateInput): Promise<AuditLog> {
     return prisma.auditLog.create({ data });
   }
 

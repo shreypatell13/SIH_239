@@ -1036,7 +1036,10 @@ async function main() {
       where: { id: doc.id },
       update: {
         isLatestVersion: true,
-        processingStatus: "PENDING",
+        processingStatus: "COMPLETED",
+        classifiedAs: doc.documentType,
+        classificationConfidence: 0.94,
+        pageCount: 1,
       },
       create: {
         id: doc.id,
@@ -1049,7 +1052,208 @@ async function main() {
         uploadedById: "usr_demo_applicant_001",
         version: 1,
         isLatestVersion: true,
-        processingStatus: "PENDING",
+        processingStatus: "COMPLETED",
+        classifiedAs: doc.documentType,
+        classificationConfidence: 0.94,
+        pageCount: 1,
+      },
+    });
+
+    // Seed processing job
+    await prisma.documentProcessingJob.upsert({
+      where: { documentId: doc.id },
+      update: {
+        status: "COMPLETED",
+        attemptCount: 1,
+        completedAt: new Date(),
+      },
+      create: {
+        documentId: doc.id,
+        status: "COMPLETED",
+        attemptCount: 1,
+        maxAttempts: 3,
+        startedAt: new Date(),
+        completedAt: new Date(),
+      },
+    });
+  }
+
+  // Seed realistic ExtractedFields for demo case verification
+  const demoFields = [
+    // Caste Certificate Fields
+    {
+      documentId: "doc_demo_nos_caste_001",
+      fieldKey: "applicantName",
+      rawValue: "RAMESH KUMAR MEENA",
+      normalizedValue: "RAMESH KUMAR MEENA",
+      confidenceScore: 0.95,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "REGEX",
+    },
+    {
+      documentId: "doc_demo_nos_caste_001",
+      fieldKey: "fatherName",
+      rawValue: "RAMESHWAR MEENA",
+      normalizedValue: "RAMESHWAR MEENA",
+      confidenceScore: 0.92,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "REGEX",
+    },
+    {
+      documentId: "doc_demo_nos_caste_001",
+      fieldKey: "casteCategory",
+      rawValue: "Scheduled Tribe",
+      normalizedValue: "ST",
+      confidenceScore: 0.96,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "KEYWORD_PROXIMITY",
+    },
+    {
+      documentId: "doc_demo_nos_caste_001",
+      fieldKey: "tribeName",
+      rawValue: "Meena",
+      normalizedValue: "MEENA",
+      confidenceScore: 0.94,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "REGEX",
+    },
+    // Income Certificate Fields
+    {
+      documentId: "doc_demo_nos_income_001",
+      fieldKey: "applicantName",
+      rawValue: "RAMESH KUMAR MEENA",
+      normalizedValue: "RAMESH KUMAR MEENA",
+      confidenceScore: 0.95,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "REGEX",
+    },
+    {
+      documentId: "doc_demo_nos_income_001",
+      fieldKey: "annualFamilyIncome",
+      rawValue: "Rs. 4,50,000/-",
+      normalizedValue: "450000",
+      confidenceScore: 0.93,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "REGEX",
+    },
+    {
+      documentId: "doc_demo_nos_income_001",
+      fieldKey: "financialYear",
+      rawValue: "2023-2024",
+      normalizedValue: "2023-2024",
+      confidenceScore: 0.9,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "REGEX",
+    },
+    // Passport Fields
+    {
+      documentId: "doc_demo_nos_passport_001",
+      fieldKey: "passportNumber",
+      rawValue: "Z9876543",
+      normalizedValue: "Z9876543",
+      confidenceScore: 0.98,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "MRZ",
+    },
+    {
+      documentId: "doc_demo_nos_passport_001",
+      fieldKey: "applicantName",
+      rawValue: "RAMESH KUMAR MEENA",
+      normalizedValue: "RAMESH KUMAR MEENA",
+      confidenceScore: 0.96,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "REGEX",
+    },
+    {
+      documentId: "doc_demo_nos_passport_001",
+      fieldKey: "nationality",
+      rawValue: "INDIAN",
+      normalizedValue: "INDIAN",
+      confidenceScore: 0.99,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "KEYWORD_PROXIMITY",
+    },
+    // Offer Letter Fields
+    {
+      documentId: "doc_demo_nos_offer_001",
+      fieldKey: "applicantName",
+      rawValue: "RAMESH KUMAR MEENA",
+      normalizedValue: "RAMESH KUMAR MEENA",
+      confidenceScore: 0.92,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "REGEX",
+    },
+    {
+      documentId: "doc_demo_nos_offer_001",
+      fieldKey: "institutionName",
+      rawValue: "University of Oxford",
+      normalizedValue: "UNIVERSITY OF OXFORD",
+      confidenceScore: 0.95,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "KEYWORD_PROXIMITY",
+    },
+    // Degree Transcript Fields
+    {
+      documentId: "doc_demo_nos_degree_001",
+      fieldKey: "applicantName",
+      rawValue: "RAMESH KUMAR MEENA",
+      normalizedValue: "RAMESH KUMAR MEENA",
+      confidenceScore: 0.94,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "REGEX",
+    },
+    {
+      documentId: "doc_demo_nos_degree_001",
+      fieldKey: "universityName",
+      rawValue: "University of Delhi",
+      normalizedValue: "UNIVERSITY OF DELHI",
+      confidenceScore: 0.93,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "KEYWORD_PROXIMITY",
+    },
+    {
+      documentId: "doc_demo_nos_degree_001",
+      fieldKey: "percentageMarks",
+      rawValue: "74.28 %",
+      normalizedValue: "74.28",
+      confidenceScore: 0.95,
+      extractorProvider: "tesseract-js",
+      extractorVersion: "5.1.1",
+      extractionMethod: "REGEX",
+    },
+  ];
+
+  await prisma.extractedField.deleteMany({
+    where: { documentId: { in: sampleDocs.map((d) => d.id) } },
+  });
+
+  for (const f of demoFields) {
+    await prisma.extractedField.create({
+      data: {
+        documentId: f.documentId,
+        fieldKey: f.fieldKey,
+        rawValue: f.rawValue,
+        normalizedValue: f.normalizedValue,
+        confidenceScore: f.confidenceScore,
+        pageNumber: 1,
+        extractorProvider: f.extractorProvider,
+        extractorVersion: f.extractorVersion,
+        extractionMethod: f.extractionMethod,
+        extractedBy: "AI",
       },
     });
   }

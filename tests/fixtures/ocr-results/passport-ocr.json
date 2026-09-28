@@ -1,0 +1,19 @@
+{
+  "fullText": "PASSPORT\nREPUBLIC OF INDIA\nType: P  Country Code: IND  Passport No: Z9876543\nSurname: MEENA\nGiven Names: RAMESH KUMAR\nNationality: INDIAN\nSex: M  Date of Birth: 15/06/1998\nPlace of Birth: JAIPUR\nDate of Issue: 10/01/2023  Date of Expiry: 09/01/2033\n\nP<INDMEENA<<RAMESH<KUMAR<<<<<<<<<<<<<<<<<<<<<<\nZ9876543<8IND9806154M3301091<<<<<<<<<<<<<<<02",
+  "averageConfidence": 0.96,
+  "detectedLanguages": ["eng"],
+  "processingTimeMs": 350,
+  "providerName": "tesseract-js",
+  "providerVersion": "5.1.1",
+  "pages": [
+    {
+      "pageNumber": 1,
+      "rawText": "PASSPORT\nREPUBLIC OF INDIA\nType: P  Country Code: IND  Passport No: Z9876543\nSurname: MEENA\nGiven Names: RAMESH KUMAR\nNationality: INDIAN\nSex: M  Date of Birth: 15/06/1998\nPlace of Birth: JAIPUR\nDate of Issue: 10/01/2023  Date of Expiry: 09/01/2033\n\nP<INDMEENA<<RAMESH<KUMAR<<<<<<<<<<<<<<<<<<<<<<\nZ9876543<8IND9806154M3301091<<<<<<<<<<<<<<<02",
+      "confidence": 0.96,
+      "detectedLanguage": "eng",
+      "wordCount": 42,
+      "words": [],
+      "regions": []
+    }
+  ]
+}

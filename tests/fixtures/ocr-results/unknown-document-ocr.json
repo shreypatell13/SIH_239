@@ -1,0 +1,18 @@
+{
+  "fullText": "random unreadable noisy symbols @#$%^&* random words with no recognizable patterns or structure 1234567890 blur blur smudge",
+  "averageConfidence": 0.28,
+  "detectedLanguages": [],
+  "processingTimeMs": 210,
+  "providerName": "tesseract-js",
+  "providerVersion": "5.1.1",
+  "pages": [
+    {
+      "pageNumber": 1,
+      "rawText": "random unreadable noisy symbols @#$%^&* random words with no recognizable patterns or structure 1234567890 blur blur smudge",
+      "confidence": 0.28,
+      "wordCount": 16,
+      "words": [],
+      "regions": []
+    }
+  ]
+}

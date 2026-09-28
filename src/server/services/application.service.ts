@@ -4,6 +4,7 @@ import { applicationRepository } from "../repositories/application.repository";
 import { applicantRepository } from "../repositories/applicant.repository";
 import { schemeRepository } from "../repositories/scheme.repository";
 import { documentRepository } from "../repositories/document.repository";
+import { documentProcessingJobRepository } from "../repositories/document-processing-job.repository";
 import { documentService } from "./document.service";
 import {
   ApplicantProfileDTO,
@@ -446,6 +447,17 @@ export class ApplicationService implements IApplicationService {
 
     // 5. Submit application & transition CaseDossier atomically
     const submitted = await applicationRepository.submitApplication(applicationId, actor.id);
+
+    // 5b. Enqueue DocumentProcessingJob for each latest case document requiring extraction
+    if (submitted.caseDossier?.id) {
+      const caseDocs = await documentRepository.listByCaseId(submitted.caseDossier.id, true);
+      for (const doc of caseDocs) {
+        const req = docReqs.requirements.find((r) => r.documentType === doc.documentType);
+        if (req?.requiresExtraction !== false) {
+          await documentProcessingJobRepository.createOrResetJob(doc.id).catch(() => {});
+        }
+      }
+    }
 
     // 6. Optionally mirror canonical profile fields if present in sanitized data
     if (validation.sanitizedData.annualFamilyIncome !== undefined) {

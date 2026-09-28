@@ -129,6 +129,6 @@ test.describe("Phase 2E — Applicant Dynamic Journey & E2E Flow", () => {
     await expect(page.getByText("3. Active Blocker")).toBeVisible();
     await expect(page.getByText("4. Responsible Actor")).toBeVisible();
     await expect(page.getByText("5. Next Concrete Action")).toBeVisible();
-    await expect(page.getByText("Automated verification underway.")).toBeVisible();
+    await expect(page.getByText(/Automated (verification|eligibility evaluation)/i)).toBeVisible();
   });
 });

@@ -1,8 +1,11 @@
 import { prisma } from "../db";
-import { Document, DocumentType, ExtractedField, Prisma } from "@prisma/client";
+import { Document, DocumentType, ExtractedField, ProcessingStatus, Prisma } from "@prisma/client";
 
 export class DocumentRepository {
-  async listByCaseId(caseDossierId: string, latestOnly: boolean = true): Promise<Document[]> {
+  async listByCaseId(
+    caseDossierId: string,
+    latestOnly: boolean = true
+  ): Promise<Array<Document & { extractedFields: ExtractedField[] }>> {
     return prisma.document.findMany({
       where: {
         caseDossierId,
@@ -15,7 +18,7 @@ export class DocumentRepository {
     });
   }
 
-  async findById(id: string): Promise<Document | null> {
+  async findById(id: string): Promise<(Document & { extractedFields: ExtractedField[] }) | null> {
     return prisma.document.findUnique({
       where: { id },
       include: { extractedFields: true },
@@ -73,6 +76,62 @@ export class DocumentRepository {
         },
         include: { extractedFields: true },
       });
+    });
+  }
+
+  async saveExtractedFieldsBatch(
+    documentId: string,
+    fields: Array<{
+      fieldKey: string;
+      fieldLabel?: string;
+      rawValue: string;
+      normalizedValue?: string;
+      confidenceScore: number;
+      pageNumber: number;
+      boundingBoxX?: number;
+      boundingBoxY?: number;
+      boundingBoxWidth?: number;
+      boundingBoxHeight?: number;
+      sourceSnippet?: string;
+      extractorProvider?: string;
+      extractorVersion?: string;
+      extractionMethod?: string;
+    }>
+  ): Promise<void> {
+    if (fields.length === 0) return;
+    await prisma.extractedField.createMany({
+      data: fields.map((f) => ({
+        documentId,
+        fieldKey: f.fieldKey,
+        rawValue: f.rawValue,
+        normalizedValue: f.normalizedValue,
+        confidenceScore: f.confidenceScore,
+        pageNumber: f.pageNumber,
+        boundingBoxX: f.boundingBoxX,
+        boundingBoxY: f.boundingBoxY,
+        boundingBoxWidth: f.boundingBoxWidth,
+        boundingBoxHeight: f.boundingBoxHeight,
+        sourceSnippet: f.sourceSnippet,
+        extractorProvider: f.extractorProvider,
+        extractorVersion: f.extractorVersion,
+        extractionMethod: f.extractionMethod,
+      })),
+    });
+  }
+
+  async updateProcessingResult(
+    documentId: string,
+    data: {
+      processingStatus?: ProcessingStatus;
+      classificationConfidence?: number | null;
+      classifiedAs?: DocumentType | null;
+      pageCount?: number | null;
+    }
+  ): Promise<Document> {
+    return prisma.document.update({
+      where: { id: documentId },
+      data,
+      include: { extractedFields: true },
     });
   }
 

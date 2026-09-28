@@ -1,0 +1,52 @@
+{
+  "fullText": "GOVERNMENT OF RAJASTHAN\nOFFICE OF THE TEHSILDAR, JAIPUR\nCASTE CERTIFICATE\nCertificate No: ST/2024/09876\nDate: 15/06/2024\n\nThis is to certify that RAMESH KUMAR MEENA, son of SHRI RAMESHWAR MEENA, resident of Village Rampura, Tehsil Bassi, District Jaipur in the State of Rajasthan belongs to the MEENA community which is recognized as a Scheduled Tribe under the Constitution (Scheduled Tribes) Order, 1950.\n\nCompetent Authority: TEHSILDAR, JAIPUR",
+  "averageConfidence": 0.92,
+  "detectedLanguages": ["eng", "hin"],
+  "processingTimeMs": 420,
+  "providerName": "tesseract-js",
+  "providerVersion": "5.1.1",
+  "pages": [
+    {
+      "pageNumber": 1,
+      "rawText": "GOVERNMENT OF RAJASTHAN\nOFFICE OF THE TEHSILDAR, JAIPUR\nCASTE CERTIFICATE\nCertificate No: ST/2024/09876\nDate: 15/06/2024\n\nThis is to certify that RAMESH KUMAR MEENA, son of SHRI RAMESHWAR MEENA, resident of Village Rampura, Tehsil Bassi, District Jaipur in the State of Rajasthan belongs to the MEENA community which is recognized as a Scheduled Tribe under the Constitution (Scheduled Tribes) Order, 1950.\n\nCompetent Authority: TEHSILDAR, JAIPUR",
+      "confidence": 0.92,
+      "detectedLanguage": "eng",
+      "wordCount": 52,
+      "words": [
+        {
+          "text": "RAMESH",
+          "confidence": 0.95,
+          "bbox": { "x": 0.25, "y": 0.35, "width": 0.08, "height": 0.02 },
+          "pageNumber": 1
+        },
+        {
+          "text": "MEENA",
+          "confidence": 0.96,
+          "bbox": { "x": 0.34, "y": 0.35, "width": 0.07, "height": 0.02 },
+          "pageNumber": 1
+        },
+        {
+          "text": "SCHEDULED",
+          "confidence": 0.94,
+          "bbox": { "x": 0.65, "y": 0.42, "width": 0.12, "height": 0.02 },
+          "pageNumber": 1
+        },
+        {
+          "text": "TRIBE",
+          "confidence": 0.95,
+          "bbox": { "x": 0.78, "y": 0.42, "width": 0.06, "height": 0.02 },
+          "pageNumber": 1
+        }
+      ],
+      "regions": [
+        {
+          "regionText": "This is to certify that RAMESH KUMAR MEENA belongs to the MEENA community which is recognized as a Scheduled Tribe.",
+          "confidence": 0.93,
+          "bbox": { "x": 0.1, "y": 0.3, "width": 0.8, "height": 0.2 },
+          "pageNumber": 1,
+          "words": []
+        }
+      ]
+    }
+  ]
+}

@@ -8,23 +8,23 @@
 
 ## Roadmap Overview & Progress Matrix
 
-| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                                                                 |
-| :------------------- | :------------------------------------------------------------ | :------------ | :------------------------------------------------------------------------------------------------------------------ |
-| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                                                            |
-| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                                                      |
-| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier                                     |
-| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)                                          |
-| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | **COMPLETED** | Verified: NextAuth v4 credentials, server-authoritative RBAC, unit (31/31), E2E (11/11)                             |
-| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | **COMPLETED** | Verified: Typed DSLs, Zod & Semantic validators, Scheme Studio UI, supersession, Vitest (52/52), Playwright (21/21) |
-| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | **COMPLETED** | Verified: Dynamic form wizard, document checklist, readiness engine, early dossier, Vitest (65/65), Playwright (26/26)|
-| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | _PENDING_     | Dependent on 2B, 2E                                                                                                 |
-| **Phase 2G**         | Deterministic Rules & Verification Engine                     | _PENDING_     | Dependent on 2D, 2F                                                                                                 |
-| **Phase 2H**         | Deficiency Management & Targeted Recheck Engine               | _PENDING_     | Dependent on 2E, 2G                                                                                                 |
-| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | _PENDING_     | Dependent on 2G, 2H                                                                                                 |
-| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | _PENDING_     | Dependent on 2I                                                                                                     |
-| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | _PENDING_     | Dependent on 2I                                                                                                     |
-| **Phase 2L**         | Integration Adapters & Security Hardening                     | _PENDING_     | Dependent on 2I, 2J                                                                                                 |
-| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | _PENDING_     | Dependent on 2A–2L                                                                                                  |
+| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                                                                    |
+| :------------------- | :------------------------------------------------------------ | :------------ | :--------------------------------------------------------------------------------------------------------------------- |
+| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                                                               |
+| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                                                         |
+| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier                                        |
+| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)                                             |
+| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | **COMPLETED** | Verified: NextAuth v4 credentials, server-authoritative RBAC, unit (31/31), E2E (11/11)                                |
+| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | **COMPLETED** | Verified: Typed DSLs, Zod & Semantic validators, Scheme Studio UI, supersession, Vitest (52/52), Playwright (21/21)    |
+| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | **COMPLETED** | Verified: Dynamic form wizard, document checklist, readiness engine, early dossier, Vitest (65/65), Playwright (26/26) |
+| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | **COMPLETED** | Verified: Tesseract.js multilingual OCR, field extractors, confidence model, sweep job, Vitest (83/83), Playwright (32/32) |
+| **Phase 2G**         | Deterministic Rules & Verification Engine                     | **COMPLETED** | Verified: 11 DSL operators, ST relaxation, ambiguity routing, consistency engine, Vitest (104/104), Playwright (37/37) |
+| **Phase 2H**         | Deficiency Management & Targeted Recheck Engine               | _PENDING_     | Dependent on 2E, 2G                                                                                                    |
+| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | _PENDING_     | Dependent on 2G, 2H                                                                                                    |
+| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | _PENDING_     | Dependent on 2I                                                                                                        |
+| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | _PENDING_     | Dependent on 2I                                                                                                        |
+| **Phase 2L**         | Integration Adapters & Security Hardening                     | _PENDING_     | Dependent on 2I, 2J                                                                                                    |
+| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | _PENDING_     | Dependent on 2A–2L                                                                                                     |
 
 ---
 
@@ -152,31 +152,35 @@
 
 - **Goal:** Automate document classification, text extraction, key-value normalization, and cross-document consistency checks.
 - **Major Features:**
-  - Document classifier identifying certificate types.
-  - Multilingual OCR pipeline extracting text and bounding box coordinates.
-  - Key-value entity extraction (Name, DOB, Caste, Income, Roll No, University).
-  - Cross-document entity matcher (phonetic/fuzzy matching across certificates to spot discrepancies).
+  - Document classifier identifying certificate types (`DocumentClassifier`).
+  - Multilingual OCR pipeline (Tesseract.js) extracting text and bounding box coordinates.
+  - Key-value entity extraction for 6 certificate types (Caste, Income, Passport, Admission Offer, Degree Transcript, Research Proposal).
+  - Background asynchronous sweep runner (`ocr-sweep.ts`) with retry backoff.
 - **Dependencies:** Phase 2B, Phase 2E.
 - **Acceptance Criteria:**
   - Uploaded sample certificates are accurately classified.
-  - Extracted fields return structured JSON with page coordinates and confidence scores.
-  - Cross-document discrepancies (e.g., minor name spelling differences) are flagged as review items, not fraud.
-- **Status:** _NOT STARTED_
+  - Extracted fields return structured JSON with confidence scores and page coordinates.
+  - Cross-document discrepancies are flagged as review items, not fraud.
+- **Status:** **COMPLETED** (Verified: Vitest 83/83, Playwright 32/32)
 
 ---
 
 ### Phase 2G: Deterministic Rules & Verification Engine
 
-- **Goal:** Build the rule evaluation engine that checks deterministic eligibility criteria against extracted evidence and form data.
+- **Goal:** Build the pure deterministic rule evaluation engine that checks scheme eligibility criteria against extracted evidence and form data.
 - **Major Features:**
-  - Rule evaluation for age limits (with ST relaxation), income ceilings (≤ ₹8 Lakhs for NOS), minimum percentage, caste certificate authenticity indicators.
-  - Synthesis of deterministic rules + AI extraction confidence into an aggregated verification report.
-  - Creation of visual evidence cards anchoring extracted values to document pages.
+  - Pure deterministic evaluation of all 11 DSL operators without dynamic code execution or LLM dependencies.
+  - Pinned `SchemeVersion` immutability enforcement.
+  - ST category threshold relaxation engine (e.g. +5 years for age limit).
+  - Ambiguity and low-confidence detection (confidence < 0.50 yields AMBIGUOUS, never FAIL).
+  - Cross-document consistency verification (Unicode NFKC, honorific stripping, token Levenshtein similarity).
+  - Interactive officer evaluation card component with explainable metrics.
 - **Dependencies:** Phase 2D, Phase 2F.
 - **Acceptance Criteria:**
-  - Engine evaluates an application and outputs structured findings (Pass, Deficient, Ambiguous).
-  - Evidence cards store coordinates for visual rendering in the officer workspace.
-- **Status:** _NOT STARTED_
+  - Engine evaluates an application deterministically and outputs structured assessments (`ELIGIBLE_ASSESSED`, `NOT_ELIGIBLE_ASSESSED`, `REVIEW_REQUIRED`).
+  - Rule results and evaluation runs persist in database with immutable audit logs.
+  - Automated test coverage: 104 Vitest unit tests and 37 Playwright E2E tests passing.
+- **Status:** **COMPLETED** (Verified)
 
 ---
 
