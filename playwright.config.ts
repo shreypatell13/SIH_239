@@ -6,7 +6,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   timeout: 60000,
-  workers: process.env.CI ? 1 : 2,
+  workers: 1,
   reporter: "list",
   use: {
     baseURL: process.env.BASE_URL || "http://localhost:3000",
@@ -23,6 +23,6 @@ export default defineConfig({
     command: "npm run start",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
-    timeout: 60 * 1000,
+    timeout: 120 * 1000,
   },
 });

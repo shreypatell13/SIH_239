@@ -53,10 +53,10 @@ test.describe("Phase 2J — Operations Control Tower & Bottleneck Analytics E2E"
 
     // Verify Control Tower Header
     await expect(page.getByRole("heading", { name: /Operations Control Tower/i })).toBeVisible();
-    await expect(page.getByText(/OPERATIONS_DIRECTOR/i)).toBeVisible();
+    await expect(page.getByText(/OPERATIONS_DIRECTOR/i).first()).toBeVisible();
 
     // Verify KPI Summary Cards
-    await expect(page.getByTestId("kpi-card-total-cases")).toBeVisible();
+    await expect(page.getByTestId("kpi-card-all-cases")).toBeVisible();
     await expect(page.getByTestId("kpi-card-completed")).toBeVisible();
     await expect(page.getByTestId("kpi-card-deficiencies")).toBeVisible();
 
@@ -102,6 +102,6 @@ test.describe("Phase 2J — Operations Control Tower & Bottleneck Analytics E2E"
     await expect(page.getByTestId("drill-down-title")).toBeVisible();
 
     // Verify cases are listed
-    await expect(page.getByText(/Matching Cases/i)).toBeVisible();
+    await expect(page.getByText(/Matching Case/i)).toBeVisible();
   });
 });

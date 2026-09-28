@@ -19,7 +19,12 @@ export async function PATCH(
     const { deficiencyId } = await params;
     const body = await request.json();
 
-    if (!body.action || !["RESOLVE", "WAIVE", "REOPEN"].includes(body.action)) {
+    const action =
+      body.action ||
+      (body.status === "RESOLVED" ? "RESOLVE" : body.status === "WAIVED" ? "WAIVE" : undefined);
+    const remark = body.remark || body.resolutionRemark;
+
+    if (!action || !["RESOLVE", "WAIVE", "REOPEN"].includes(action)) {
       return NextResponse.json(
         {
           success: false,
@@ -29,7 +34,7 @@ export async function PATCH(
       );
     }
 
-    if (!body.remark || body.remark.trim() === "") {
+    if (!remark || remark.trim() === "") {
       return NextResponse.json(
         {
           success: false,
@@ -42,8 +47,8 @@ export async function PATCH(
     const updated = await deficiencyService.officerResolveOrWaive(
       deficiencyId,
       {
-        action: body.action,
-        remark: body.remark.trim(),
+        action,
+        remark: remark.trim(),
       },
       user
     );

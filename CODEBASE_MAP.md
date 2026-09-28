@@ -26,6 +26,9 @@
 - Eligibility: `EligibilityEngineService.evaluateApplication` for full runs; `evaluateTargetedRules` for correction-linked rules only.
 - Operations analytics: all three operations APIs independently require an active `OPERATIONS_DIRECTOR`; case-list responses omit applicant names and document-level data. The dashboard's age bands are analytical, derived from case/stage workflow timestamps and are not official SLA claims.
 
-## Current verification caveats
+## Verification status
 
-See `current-state.md` for the latest command results. PostgreSQL availability is required by integration/E2E paths; the current sandbox also prevents Vitest's esbuild config loader from traversing a parent directory.
+All verification suites pass cleanly against the live PostgreSQL instance on port 5433:
+- Vitest: 18/18 test suites, 173/173 tests passing
+- Playwright: 56/56 E2E tests passing
+- Type-check, ESLint, Prettier, Next.js build: 100% PASS

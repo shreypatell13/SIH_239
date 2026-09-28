@@ -10,7 +10,8 @@
  */
 
 import { DeficiencyType, DocumentType } from "@prisma/client";
-import { RemedyAction } from "./types";
+import { RemedyAction, OfficerDeficiencyDTO } from "./types";
+import { isDeficiencyExpired } from "./policy";
 
 export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   CASTE_CERTIFICATE: "Scheduled Tribe (ST) Certificate",
@@ -128,4 +129,53 @@ function getRemedyAction(type: DeficiencyType): RemedyAction {
     default:
       return "PROVIDE_CLARIFICATION";
   }
+}
+
+/**
+ * Maps a Prisma Deficiency entity to OfficerDeficiencyDTO with rich explanations.
+ */
+export function toOfficerDeficiencyDTO(d: any): OfficerDeficiencyDTO {
+  const explanation = generateDeficiencyExplanation({
+    deficiencyType: d.deficiencyType,
+    documentType: d.documentType,
+    customDescription: d.description,
+  });
+
+  return {
+    id: d.id,
+    caseDossierId: d.caseDossierId,
+    applicationId: d.caseDossier?.applicationId || d.caseDossier?.application?.id || "",
+    deficiencyType: d.deficiencyType,
+    title: explanation.title,
+    description: d.description || explanation.description,
+    remedyAction: explanation.remedyAction,
+    documentType: d.documentType,
+    targetDocumentId: d.targetDocumentId,
+    targetDocumentFilename: d.targetDocument?.originalFilename || null,
+    ruleResultId: d.ruleResultId,
+    ruleKey: d.ruleResult?.ruleKey || null,
+    status: d.status,
+    recheckStatus: d.recheckStatus,
+    recheckAt: d.recheckAt,
+    responseDeadline: d.responseDeadline,
+    isExpired: isDeficiencyExpired(d.responseDeadline),
+    applicantResponseText: d.applicantResponseText,
+    applicantRespondedAt: d.applicantRespondedAt,
+    resolvedAt: d.resolvedAt,
+    issuedAt: d.issuedAt,
+    officerResolutionRemark: d.officerResolutionRemark,
+    issuedBy: {
+      id: d.issuedBy?.id || d.issuedById || "",
+      name: d.issuedBy?.name || "Verification Officer",
+      email: d.issuedBy?.email || "",
+      role: d.issuedBy?.role || "VERIFICATION_OFFICER",
+    },
+    resolutionDocuments: (d.resolutionDocuments || []).map((rd: any) => ({
+      id: rd.id,
+      originalFilename: rd.originalFilename,
+      version: rd.version,
+      uploadedAt: rd.uploadedAt,
+      processingStatus: rd.processingStatus,
+    })),
+  };
 }
