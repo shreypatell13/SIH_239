@@ -6,10 +6,10 @@
 ## Current status
 
 - **Current phase:** Phase 2 (Actual Engineering)
-- **Current sub-phase:** Phase 2I remediation; Phase 2J work already exists in the working tree and remains out of scope for this pass.
-- **Last stable commit:** `703b582 feat(phase-2h): implement deficiency management and targeted recheck workflow`
+- **Current sub-phase:** Phase 2J Operations Control Tower implementation; Phase 2K has not started.
+- **Last stable commit:** `d70d7b1 feat(phase-2j): implement operations control tower analytics` (Phase 2J remains partial pending database-backed verification.)
 - **Working tree:** Contains existing uncommitted Phase 2I/2J work plus remediation changes. Do not reset or discard it.
-- **Schema:** No schema change was needed for this remediation.
+- **Schema:** No schema change was needed for Phase 2J.
 
 ## Remediation implemented
 
@@ -35,11 +35,22 @@
 - **2A–2G:** Historical phase records remain in `phases.md`; this remediation pass did not re-run their full acceptance suites.
 - **2H:** Remediation implemented; database-dependent and unit-suite verification remains limited by the environment.
 - **2I:** Existing workspace code plus decision/scope remediation is present; database-backed acceptance remains unverified.
-- **2J:** Existing working-tree work is preserved and was not extended as part of this task.
+- **2J:** Database-backed operations dashboard, protected APIs, deterministic aging/bottleneck analytics, scheme and officer summaries, and paginated case-level drill-down are implemented. Status is PARTIAL because database-backed integration/E2E checks could not be verified in this environment.
+
+## Phase 2J verification on 2026-09-29
+
+- `npm run type-check`: PASS.
+- `npm run lint`: PASS, no warnings or errors.
+- `npm run format:check`: PASS.
+- `npm run build`: PASS; Next.js compiled and generated all pages. Static generation logged PostgreSQL connection failures at `localhost:5433`.
+- `npm test`: NOT VERIFIABLE; Vitest/esbuild was denied access while traversing `../../..` to load `vitest.config.ts`.
+- `npm run test:e2e`: NOT VERIFIABLE as a complete suite; the initial unrelated applicant-flow cases failed and the suite was stopped after failures. Focused Phase 2J E2E: unauthenticated API checks passed; role login/dashboard checks failed because seeded demo credentials were rejected while PostgreSQL was unavailable.
+- PostgreSQL TCP check at `localhost:5433`: unavailable.
+- No Prisma schema or migration changes were made.
 
 ## Known limitations
 
-- PostgreSQL was unavailable at `localhost:5433` during build/E2E verification.
+- PostgreSQL was unavailable at `localhost:5433` during build/E2E verification, so database-backed analytics and seeded-role flows remain unverified.
 - Vitest could not start under the current filesystem sandbox.
 - `pdftoppm` must be installed or `PDF_TO_PPM_PATH` configured for scanned-PDF rasterization; OCR accuracy and coordinates depend on the provider and are not guaranteed.
 - This remediation is not a production security certification.

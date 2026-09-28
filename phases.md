@@ -220,17 +220,19 @@
 
 ### Phase 2J: Operations Control Tower & Bottleneck Analytics
 
-- **Goal:** Provide senior leadership with complete operational observability over scheme health and processing pipelines.
+- **Goal:** Provide authorized management users with a database-backed operational view of case stages, age, workload, deficiencies, and explainable bottleneck triggers.
 - **Major Features:**
-  - High-level KPI summary cards (applications, clearance rate, average TAT, active deficiencies).
-  - Funnel analysis highlighting stage-wise bottlenecks.
-  - Officer workload and productivity tracking.
-  - Recurring deficiency heatmap categorized by scheme and state/region.
+  - Operations Director-only overview, bottleneck, and paginated case-list APIs.
+  - Database-backed KPI summary, current stage distribution, analytical aging buckets, and stage dwell calculations.
+  - Deterministic bottleneck triggers with measured inputs, thresholds, explanations, and case-list drill-downs.
+  - Officer workload and generic scheme summaries, without officer performance scoring.
+  - Deficiency grouping by scheme/type/document with open/resolved counts and affected-case totals.
+  - PII-minimized case-list drill-down with stage, state, age, assignment, deficiency, and category filters.
 - **Dependencies:** Phase 2I.
 - **Acceptance Criteria:**
-  - Control Tower aggregates live database metrics into clear, responsive charts and tables.
-  - Bottlenecks and recurring deficiency patterns are immediately identifiable.
-- **Status:** _NOT STARTED_
+  - Type-check, lint, formatting, and production build pass.
+  - Database-backed role, analytics, drill-down, and Phase 2I regression tests pass in an environment with the configured PostgreSQL seed data.
+- **Status:** **PARTIAL** (2026-09-29: type-check, lint, formatting, and build pass; PostgreSQL at `localhost:5433` is unavailable, Vitest is blocked by sandbox config-loader access, and seeded-role E2E checks cannot authenticate).
 
 ---
 
