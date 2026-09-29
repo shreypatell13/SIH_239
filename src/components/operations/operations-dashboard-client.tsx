@@ -18,6 +18,7 @@ import { AgingSlaCard } from "./aging-sla-card";
 import { DeficiencyHeatmapCard } from "./deficiency-heatmap-card";
 import { DrillDownCaseDrawer } from "./drill-down-case-drawer";
 import { OperationsBreakdownCard } from "./operations-breakdown-card";
+import { IntegrationStatusCard } from "@/components/integrations/integration-status-card";
 import { Layers, AlertOctagon, Clock, TrendingUp } from "lucide-react";
 
 interface OperationsDashboardClientProps {
@@ -314,6 +315,11 @@ export function OperationsDashboardClient({
               onInspectDeficiency={handleInspectDeficiency}
             />
           )}
+
+          {/* External Government Integration Adapters Status */}
+          <div className="pt-2">
+            <IntegrationStatusCard />
+          </div>
         </div>
       </div>
 

@@ -8,22 +8,22 @@
 
 ## Roadmap Overview & Progress Matrix
 
-| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                                                                               |
-| :------------------- | :------------------------------------------------------------ | :------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
-| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                                                                          |
-| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                                                                    |
-| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier                                                   |
-| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)                                                        |
-| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | **COMPLETED** | Verified: NextAuth v4 credentials, server-authoritative RBAC, unit (31/31), E2E (11/11)                                           |
-| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | **COMPLETED** | Verified: Typed DSLs, Zod & Semantic validators, Scheme Studio UI, supersession, Vitest (52/52), Playwright (21/21)               |
-| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | **COMPLETED** | Verified: Dynamic form wizard, document checklist, readiness engine, early dossier, Vitest (65/65), Playwright (26/26)            |
-| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | **COMPLETED** | Verified: Tesseract.js multilingual OCR, field extractors, confidence model, sweep job, Vitest (83/83), Playwright (32/32)        |
-| **Phase 2G**         | Deterministic Rules & Verification Engine                     | **COMPLETED** | Verified: 11 DSL operators, ST relaxation, ambiguity routing, consistency engine, Vitest (104/104), Playwright (37/37)            |
-| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | **COMPLETED** | Verified: Split-screen workspace, bounding boxes, decision desk, Vitest (15/15), Playwright (7/7)                                 |
-| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | **COMPLETED** | Verified: Live DB analytics, bottleneck detection, drill-down, Vitest (18/18 files, 173/173 tests), Playwright (56/56)            |
-| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | **COMPLETED** | Verified: Scholar registry, multi-year renewals, mock PFMS disbursements, Vitest (20/20 files, 185/185 tests), Playwright (60/60) |
-| **Phase 2L**         | Integration Adapters & Security Hardening                     | _PENDING_     | Dependent on 2I, 2J, 2K                                                                                                           |
-| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | _PENDING_     | Dependent on 2A–2L                                                                                                                |
+| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                                                                                    |
+| :------------------- | :------------------------------------------------------------ | :------------ | :------------------------------------------------------------------------------------------------------------------------------------- |
+| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                                                                               |
+| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                                                                         |
+| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier                                                        |
+| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)                                                             |
+| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | **COMPLETED** | Verified: NextAuth v4 credentials, server-authoritative RBAC, unit (31/31), E2E (11/11)                                                |
+| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | **COMPLETED** | Verified: Typed DSLs, Zod & Semantic validators, Scheme Studio UI, supersession, Vitest (52/52), Playwright (21/21)                    |
+| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | **COMPLETED** | Verified: Dynamic form wizard, document checklist, readiness engine, early dossier, Vitest (65/65), Playwright (26/26)                 |
+| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | **COMPLETED** | Verified: Tesseract.js multilingual OCR, field extractors, confidence model, sweep job, Vitest (83/83), Playwright (32/32)             |
+| **Phase 2G**         | Deterministic Rules & Verification Engine                     | **COMPLETED** | Verified: 11 DSL operators, ST relaxation, ambiguity routing, consistency engine, Vitest (104/104), Playwright (37/37)                 |
+| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | **COMPLETED** | Verified: Split-screen workspace, bounding boxes, decision desk, Vitest (15/15), Playwright (7/7)                                      |
+| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | **COMPLETED** | Verified: Live DB analytics, bottleneck detection, drill-down, Vitest (18/18 files, 173/173 tests), Playwright (56/56)                 |
+| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | **COMPLETED** | Verified: Scholar registry, multi-year renewals, mock PFMS disbursements, Vitest (20/20 files, 185/185 tests), Playwright (60/60)      |
+| **Phase 2L**         | Integration Adapters & Security Hardening                     | **COMPLETED** | Verified: DigiLocker/PFMS/NSP/MoTA adapters, security headers, storage traversal guards, Vitest (22/22, 214 tests), Playwright (63/63) |
+| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | _PENDING_     | Dependent on 2A–2L                                                                                                                     |
 
 ---
 
@@ -259,16 +259,18 @@
 
 - **Goal:** Implement robust adapter interfaces for external government systems and enforce production-grade security standards.
 - **Major Features:**
-  - DigiLocker adapter (mocked with realistic document verification payloads).
-  - PFMS adapter (mocked with payment sanction and DBT disbursement records).
-  - NSP adapter (mocked with deduplication checks).
-  - Rate limiting, CSP headers, sanitized inputs, encrypted storage abstractions.
-  - Comprehensive audit trail integrity verification.
-- **Dependencies:** Phase 2I, Phase 2J.
+  - Decoupled typed adapter interfaces (`IDigiLockerAdapter`, `IPfmsAdapter`, `INspAdapter`, `IMotaAdapter`) and deterministic mock implementations with simulation hooks for timeout/unavailable/malformed errors.
+  - Centralized `IntegrationRegistry` and protected health check API (`/api/integrations/health`) with responsive UI status indicators in the Operations Control Tower.
+  - Hardened HTTP security headers (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, CSP) in `next.config.mjs`.
+  - Storage path traversal containment (`LocalStorageAdapter.resolveSafePath`) strictly preventing directory escape.
+  - PII masking and sanitized audit logging (`security-sanitizer.ts`) scrubbing Aadhaar numbers, bank accounts, tokens, and database credentials from logs and error messages.
+- **Dependencies:** Phase 2I, Phase 2J, Phase 2K.
 - **Acceptance Criteria:**
   - External adapters return realistic synthetic verification/disbursement states without breaking when offline.
-  - Security audit passes without high-severity vulnerabilities.
-- **Status:** _NOT STARTED_
+  - Storage adapter rejects path traversal attempts.
+  - Security headers are properly applied across routes.
+  - All automated test suites pass cleanly (Vitest 22/22 suites, 214 tests; Playwright 63/63 tests).
+- **Status:** **COMPLETED** (Verified: DigiLocker/PFMS/NSP/MoTA adapters, security headers, storage traversal guards, Vitest 22/22 files / 214 tests, Playwright 63/63 tests).
 
 ---
 

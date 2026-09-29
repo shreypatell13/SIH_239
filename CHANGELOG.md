@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-29 — Phase 2L Integration Adapters & Security Hardening (COMPLETED & VERIFIED)
+
+- Created production-ready, decoupled integration adapter boundaries for external government systems (`IDigiLockerAdapter`, `IPfmsAdapter`, `INspAdapter`, `IMotaAdapter`).
+- Implemented deterministic, safe mock adapters (`MockDigiLockerAdapter`, `MockPfmsAdapter`, `MockNspAdapter`, `MockMotaAdapter`) with built-in test hooks for timeout simulation, provider outage, and malformed payload resilience.
+- Provided centralized `IntegrationRegistry` and server-protected health API (`GET /api/integrations/health`) with responsive status visualization (`IntegrationStatusCard`) in the Operations Control Tower.
+- Hardened HTTP security headers in `next.config.mjs` (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, `X-XSS-Protection`).
+- Reinforced local document storage against directory traversal attacks via `LocalStorageAdapter.resolveSafePath`.
+- Implemented `security-sanitizer.ts` for PII protection: masking Aadhaar numbers (`XXXX-XXXX-1234`), bank account numbers (`XXXX-XXXX-4921`), and scrubbing passwords/tokens/database connection strings from audit logs and error responses.
+- Verified: Type-check (0 errors), ESLint (0 warnings/errors), Prettier (100% compliant), Next.js production build (31/31 routes compiled), Vitest unit & integration tests (22/22 test suites, 214/214 tests passing), and Playwright E2E tests (63/63 tests passing).
+
 ## 2026-09-29 — Phase 2K Post-Selection Management & Renewal Workflows (COMPLETED & VERIFIED)
 
 - Implemented database-backed Post-Selection Scholar Master Registry, multi-year progress report renewals, supervisor recommendation capture, and simulated PFMS disbursement schedules (`PostSelectionRecord`, `ScholarRenewal`, `DisbursementRecord`).

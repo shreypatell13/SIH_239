@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ScholarDetailWorkspace } from "@/components/post-selection/scholar-detail-workspace";
@@ -19,7 +19,7 @@ export default function ScholarDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchScholarDetail = async () => {
+  const fetchScholarDetail = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -34,13 +34,13 @@ export default function ScholarDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [scholarId]);
 
   useEffect(() => {
     if (scholarId) {
       fetchScholarDetail();
     }
-  }, [scholarId]);
+  }, [scholarId, fetchScholarDetail]);
 
   if (isLoading) {
     return (

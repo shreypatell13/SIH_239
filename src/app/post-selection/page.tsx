@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { PostSelectionKpiSummary } from "@/components/post-selection/post-selection-kpi-summary";
 import { ScholarRegistryTable } from "@/components/post-selection/scholar-registry-table";
@@ -49,7 +49,7 @@ export default function PostSelectionPage() {
   const [selectedRenewalForReview, setSelectedRenewalForReview] = useState<RenewalDTO | null>(null);
   const [selectedDisbursement, setSelectedDisbursement] = useState<DisbursementDTO | null>(null);
 
-  const fetchOverview = async () => {
+  const fetchOverview = useCallback(async () => {
     try {
       const res = await fetch("/api/post-selection/overview");
       if (res.ok) {
@@ -59,9 +59,9 @@ export default function PostSelectionPage() {
     } catch (e) {
       console.error("Failed to load metrics", e);
     }
-  };
+  }, []);
 
-  const fetchScholars = async () => {
+  const fetchScholars = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (scholarFilters.search) params.append("search", scholarFilters.search);
@@ -78,9 +78,9 @@ export default function PostSelectionPage() {
     } catch (e) {
       console.error("Failed to load scholars", e);
     }
-  };
+  }, [scholarFilters]);
 
-  const fetchRenewals = async () => {
+  const fetchRenewals = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (renewalFilters.status) params.append("status", renewalFilters.status);
@@ -95,9 +95,9 @@ export default function PostSelectionPage() {
     } catch (e) {
       console.error("Failed to load renewals", e);
     }
-  };
+  }, [renewalFilters]);
 
-  const fetchDisbursements = async () => {
+  const fetchDisbursements = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (disbursementFilters.status) params.append("status", disbursementFilters.status);
@@ -111,17 +111,17 @@ export default function PostSelectionPage() {
     } catch (e) {
       console.error("Failed to load disbursements", e);
     }
-  };
+  }, [disbursementFilters]);
 
-  const loadAllData = async () => {
+  const loadAllData = useCallback(async () => {
     setIsLoading(true);
     await Promise.all([fetchOverview(), fetchScholars(), fetchRenewals(), fetchDisbursements()]);
     setIsLoading(false);
-  };
+  }, [fetchOverview, fetchScholars, fetchRenewals, fetchDisbursements]);
 
   useEffect(() => {
     loadAllData();
-  }, [scholarFilters, renewalFilters, disbursementFilters]);
+  }, [loadAllData]);
 
   return (
     <div className="container mx-auto max-w-7xl space-y-6 px-4 py-8">

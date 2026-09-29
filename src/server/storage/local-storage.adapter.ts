@@ -18,8 +18,35 @@ export class LocalStorageAdapter implements IStorageAdapter {
     }
   }
 
-  private sanitizeKey(key: string): string {
-    return key.replace(/[^a-zA-Z0-9_\-\.]/g, "_");
+  /**
+   * Sanitizes storage key and guarantees absolute path is contained strictly within baseDir.
+   * Throws a security error if a path traversal attempt is detected.
+   */
+  public resolveSafePath(key: string): { safeKey: string; targetPath: string } {
+    if (!key || typeof key !== "string") {
+      throw new Error("SECURITY_ERROR: Storage key must be a non-empty string");
+    }
+
+    // Strip null bytes and control chars
+    const cleaned = key.replace(/\0/g, "").trim();
+
+    // Replace invalid characters while preserving clean alphanumeric separators
+    const safeKey = cleaned.replace(/[^a-zA-Z0-9_\-\.]/g, "_");
+
+    const targetPath = path.resolve(this.baseDir, safeKey);
+
+    // Verify directory traversal containment
+    const normalizedBase = path.normalize(this.baseDir);
+    const normalizedTarget = path.normalize(targetPath);
+
+    if (
+      !normalizedTarget.startsWith(normalizedBase + path.sep) &&
+      normalizedTarget !== normalizedBase
+    ) {
+      throw new Error("SECURITY_ERROR: Storage path traversal attempt detected");
+    }
+
+    return { safeKey, targetPath };
   }
 
   async upload(
@@ -28,8 +55,7 @@ export class LocalStorageAdapter implements IStorageAdapter {
     meta: { originalName: string; mimeType: string }
   ): Promise<StoredFileMeta> {
     await this.ensureBaseDir();
-    const safeKey = this.sanitizeKey(key);
-    const targetPath = path.join(this.baseDir, safeKey);
+    const { safeKey, targetPath } = this.resolveSafePath(key);
 
     const hash = crypto.createHash("sha256").update(buffer).digest("hex");
     await fs.writeFile(targetPath, buffer);
@@ -46,15 +72,13 @@ export class LocalStorageAdapter implements IStorageAdapter {
   }
 
   async download(key: string): Promise<Buffer> {
-    const safeKey = this.sanitizeKey(key);
-    const targetPath = path.join(this.baseDir, safeKey);
+    const { targetPath } = this.resolveSafePath(key);
     return await fs.readFile(targetPath);
   }
 
   async delete(key: string): Promise<boolean> {
     try {
-      const safeKey = this.sanitizeKey(key);
-      const targetPath = path.join(this.baseDir, safeKey);
+      const { targetPath } = this.resolveSafePath(key);
       await fs.unlink(targetPath);
       return true;
     } catch {
@@ -64,8 +88,7 @@ export class LocalStorageAdapter implements IStorageAdapter {
 
   async exists(key: string): Promise<boolean> {
     try {
-      const safeKey = this.sanitizeKey(key);
-      const targetPath = path.join(this.baseDir, safeKey);
+      const { targetPath } = this.resolveSafePath(key);
       await fs.access(targetPath);
       return true;
     } catch {
@@ -74,7 +97,7 @@ export class LocalStorageAdapter implements IStorageAdapter {
   }
 
   async getUrl(key: string): Promise<string> {
-    const safeKey = this.sanitizeKey(key);
+    const { safeKey } = this.resolveSafePath(key);
     return `/api/documents/preview/${safeKey}`;
   }
 }
