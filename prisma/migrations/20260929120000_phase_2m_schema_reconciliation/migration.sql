@@ -73,4 +73,4 @@ ALTER TABLE "scholar_renewals" ADD CONSTRAINT "scholar_renewals_postSelectionRec
 ALTER TABLE "scholar_renewals" ADD CONSTRAINT "scholar_renewals_reviewedById_fkey" FOREIGN KEY ("reviewedById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "disbursement_records" ADD CONSTRAINT "disbursement_records_postSelectionRecordId_fkey" FOREIGN KEY ("postSelectionRecordId") REFERENCES "post_selection_records"("id") ON DELETE CASCADE ON UPDATE CASCADE;\n
+ALTER TABLE "disbursement_records" ADD CONSTRAINT "disbursement_records_postSelectionRecordId_fkey" FOREIGN KEY ("postSelectionRecordId") REFERENCES "post_selection_records"("id") ON DELETE CASCADE ON UPDATE CASCADE;

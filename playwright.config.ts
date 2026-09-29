@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const port = process.env.PORT || "3000";
+const baseURL = process.env.BASE_URL || `http://localhost:${port}`;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -9,7 +12,7 @@ export default defineConfig({
   workers: 1,
   reporter: "list",
   use: {
-    baseURL: process.env.BASE_URL || "http://localhost:3000",
+    baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -20,8 +23,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run start",
-    url: "http://localhost:3000",
+    command: `npm run start -- --port ${port}`,
+    url: baseURL,
+    env: {
+      INTERNAL_SWEEP_SECRET: process.env.INTERNAL_SWEEP_SECRET || "phase2m-local-e2e-only-secret",
+      NEXTAUTH_URL: baseURL,
+      NEXTAUTH_URL_INTERNAL: baseURL,
+    },
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

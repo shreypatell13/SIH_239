@@ -18,6 +18,8 @@
 
 - `tests/unit/` — Vitest unit and service tests.
 - `tests/e2e/` — Playwright browser/API flows.
+- `tests/e2e/zz-phase2m-complete-lifecycle.spec.ts` — two connected browser workflows for applicant-to-decision/management and seeded scholar renewal-to-disbursement/audit; placed last because the workflows intentionally mutate seed state.
+- `tests/fixtures/documents/demo-*.pdf` — deterministic synthetic certificate-style fixtures. Every document is visibly marked DEMO ONLY and uses fake values.
 - `scripts/` — maintenance and diagnostic scripts; inspect each script before execution.
 
 ## Security-sensitive paths
@@ -33,13 +35,15 @@
 
 ## Verification status
 
-Verified against local PostgreSQL 17.10 on port 5433 (native service):
+Verified against a fresh disposable PostgreSQL database on local PostgreSQL 17.10, port 5433 (native service):
 
 - Vitest: 22/22 test files, 215/215 tests passing
-- Playwright: 64/64 E2E tests passing
+- Playwright: 66/66 E2E tests passing, including the two full connected lifecycle journeys
 - Type-check, ESLint, Prettier, Prisma validation, migration status, production build: PASS
-- Demo startup and seed/reset commands: documented in root `README.md`; the seed was rerun after tests
-- Scope limitation: E2E coverage is not a continuous applicant submission-to-decision and post-selection renewal-to-disbursement journey; seeded PDF is generic synthetic content, not a realistic certificate fixture. Docker startup was not exercised. See `current-state.md` for Phase 2M partial status.
+- Fresh blank database migration and deterministic seed, production application startup, demo persona routes, and reset/reseed: PASS. The configured user database was not modified.
+- Connected applicant → OCR/verification → deficiency/correction/recheck → officer decision → audit/management and scholar → renewal → approval → disbursement → audit journeys: PASS.
+- Demo walkthrough was timed at approximately 16 seconds of active browser interaction; MOCK/DEMO integration labeling is asserted.
+- Limitation: the already-running native PostgreSQL service was not cold-restarted, and Docker startup was not exercised. Government integrations remain MOCK/DEMO. See `current-state.md` for full results and scope.
 
 ## Phase 2M demo/readiness files
 

@@ -989,50 +989,57 @@ async function main() {
     {
       id: "doc_demo_nos_caste_001",
       documentType: "CASTE_CERTIFICATE" as const,
-      originalFilename: "Ramesh_ST_Certificate_Rajasthan.pdf",
+      originalFilename: "DEMO_ST_Certificate_Synthetic.pdf",
+      fixtureFilename: "demo-st-caste-certificate.pdf",
       storagePath: "case_demo_nos_001/CASTE_CERTIFICATE/sample_caste.pdf",
       mimeType: "application/pdf",
-      fileSizeBytes: 1048576,
+      fileSizeBytes: 0,
     },
     {
       id: "doc_demo_nos_income_001",
       documentType: "INCOME_CERTIFICATE" as const,
-      originalFilename: "Income_Certificate_FY25_26.pdf",
+      originalFilename: "DEMO_Income_Certificate_Synthetic.pdf",
+      fixtureFilename: "demo-income-certificate.pdf",
       storagePath: "case_demo_nos_001/INCOME_CERTIFICATE/sample_income.pdf",
       mimeType: "application/pdf",
-      fileSizeBytes: 819200,
+      fileSizeBytes: 0,
     },
     {
       id: "doc_demo_nos_passport_001",
       documentType: "PASSPORT" as const,
-      originalFilename: "Indian_Passport_Ramesh_Z9876543.pdf",
+      originalFilename: "DEMO_Passport_Synthetic.pdf",
+      fixtureFilename: "demo-passport.pdf",
       storagePath: "case_demo_nos_001/PASSPORT/sample_passport.pdf",
       mimeType: "application/pdf",
-      fileSizeBytes: 2097152,
+      fileSizeBytes: 0,
     },
     {
       id: "doc_demo_nos_offer_001",
       documentType: "ADMISSION_OFFER_LETTER" as const,
-      originalFilename: "Oxford_Unconditional_Offer_Letter.pdf",
+      originalFilename: "DEMO_Admission_Offer_Synthetic.pdf",
+      fixtureFilename: "demo-admission-offer.pdf",
       storagePath: "case_demo_nos_001/ADMISSION_OFFER_LETTER/sample_offer.pdf",
       mimeType: "application/pdf",
-      fileSizeBytes: 1572864,
+      fileSizeBytes: 0,
     },
     {
       id: "doc_demo_nos_degree_001",
       documentType: "DEGREE_TRANSCRIPT" as const,
-      originalFilename: "MSc_Physics_Consolidated_Marksheet.pdf",
+      originalFilename: "DEMO_Degree_Transcript_Synthetic.pdf",
+      fixtureFilename: "demo-degree-transcript.pdf",
       storagePath: "case_demo_nos_001/DEGREE_TRANSCRIPT/sample_transcript.pdf",
       mimeType: "application/pdf",
-      fileSizeBytes: 1258291,
+      fileSizeBytes: 0,
     },
   ];
 
   // Seed files into the same safe local-storage path used by document preview.
-  const samplePdf = fs.readFileSync(
-    path.resolve(process.cwd(), "tests/fixtures/documents/synthetic-valid.pdf")
-  );
+  const sampleFileSizes = new Map<string, number>();
   for (const doc of sampleDocs) {
+    const samplePdf = fs.readFileSync(
+      path.resolve(process.cwd(), "tests/fixtures/documents", doc.fixtureFilename)
+    );
+    sampleFileSizes.set(doc.id, samplePdf.length);
     await defaultStorage.upload(doc.storagePath, samplePdf, {
       originalName: doc.originalFilename,
       mimeType: doc.mimeType,
@@ -1048,7 +1055,7 @@ async function main() {
         originalFilename: doc.originalFilename,
         storagePath: doc.storagePath,
         mimeType: doc.mimeType,
-        fileSizeBytes: samplePdf.length,
+        fileSizeBytes: sampleFileSizes.get(doc.id)!,
         uploadedById: "usr_demo_applicant_001",
         version: 1,
         isLatestVersion: true,
@@ -1064,7 +1071,7 @@ async function main() {
         originalFilename: doc.originalFilename,
         storagePath: doc.storagePath,
         mimeType: doc.mimeType,
-        fileSizeBytes: samplePdf.length,
+        fileSizeBytes: sampleFileSizes.get(doc.id)!,
         uploadedById: "usr_demo_applicant_001",
         version: 1,
         isLatestVersion: true,

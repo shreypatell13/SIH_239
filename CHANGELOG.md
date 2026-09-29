@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-29 — Phase 2M Final Validation (COMPLETED & VERIFIED)
+
+- Added two connected Playwright lifecycle scenarios: applicant scheme/form/document/OCR/submission/deficiency correction/targeted recheck/officer decision/audit/management; and seeded scholar registry/detail/renewal submission/officer approval/simulated disbursement/audit.
+- Moved the state-mutating lifecycle scenarios to the end of the E2E suite so existing scenarios run against their expected seeded baseline; aligned NextAuth external/internal callback URLs with Playwright's selected port so logout remains on the test server.
+- Replaced generic seeded application attachments with deterministic synthetic certificate-style PDFs, clearly marked DEMO ONLY and containing fake values; retained an intentionally ambiguous generic fixture for the test that verifies an unresolved targeted recheck.
+- Fixed the schema reconciliation migration's missing final newline, allowing a fresh PostgreSQL deployment to apply all five migrations.
+- Fresh-database reset/migration/seed, application startup, demo persona login/main routes, and repeat reset/reseed verified on an isolated database. The configured user database was not reset or modified.
+- Timed the final walkthrough at approximately 16 seconds of active browser interaction. No blocking navigation, runtime, authentication, missing-record, or integration-labeling issues remained.
+- Final regression: type-check, lint, format check, production build, Vitest (22 files/215 tests), and Playwright (66/66) passed. The two connected lifecycle tests also passed independently.
+- Limitation: integrations remain MOCK/DEMO; Docker startup and a cold stop/start of the already-running native PostgreSQL service were not exercised.
+
 ## 2026-09-29 — Phase 2M End-to-End Testing & Demo Readiness (PARTIAL)
 
 - Made synthetic seed records repeatable: stable seed timestamps/IDs, fixed seed audit rows, preserved seeded password hashes, safe seeded PDF storage, and no deletion of later scheme versions.
