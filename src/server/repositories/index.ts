@@ -6,3 +6,5 @@ export * from "./case.repository";
 export * from "./document.repository";
 export * from "./deficiency.repository";
 export * from "./audit.repository";
+export * from "./operations-analytics.repository";
+export * from "./post-selection.repository";

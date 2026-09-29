@@ -1275,8 +1275,132 @@ async function main() {
     },
   });
 
+  // ==========================================
+  // PHASE 2K: POST-SELECTION SCHOLAR REGISTRY SEED
+  // ==========================================
+  console.log("🎓 Seeding Phase 2K Post-Selection Scholar Registry & Renewal data...");
+  const postSelectionRecord = await prisma.postSelectionRecord.upsert({
+    where: { caseDossierId: nosCase.id },
+    update: {
+      awardedAmount: 3600000.0,
+      scholarStatus: "ACTIVE",
+      currentYear: 1,
+      totalTenureYears: 3,
+      researchInstitution: "University of Oxford, Department of Physics",
+      supervisorName: "Prof. Alistair Finch",
+      fellowshipType: "Doctoral Overseas Fellow (NOS)",
+      disbursementStatus: "FIRST_INSTALLMENT",
+      pfmsReferenceId: "PFMS-2026-NOS-009182",
+      continuationApproved: true,
+      remarks: "Awarded under NOS FY 2026 Scheduled Tribe Merit Quota.",
+    },
+    create: {
+      id: "psr_demo_nos_001",
+      caseDossierId: nosCase.id,
+      applicantProfileId: "prof_demo_applicant_001",
+      schemeVersionId: "sch_ver_nos_2025_1",
+      awardedAmount: 3600000.0,
+      tenureStartDate: new Date("2025-10-01"),
+      tenureEndDate: new Date("2028-09-30"),
+      researchInstitution: "University of Oxford, Department of Physics",
+      supervisorName: "Prof. Alistair Finch",
+      fellowshipType: "Doctoral Overseas Fellow (NOS)",
+      disbursementStatus: "FIRST_INSTALLMENT",
+      scholarStatus: "ACTIVE",
+      currentYear: 1,
+      totalTenureYears: 3,
+      pfmsReferenceId: "PFMS-2026-NOS-009182",
+      renewalDueDate: new Date("2026-10-01"),
+      continuationApproved: true,
+      remarks: "Awarded under NOS FY 2026 Scheduled Tribe Merit Quota.",
+    },
+  });
+
+  // Seed Renewals
+  await prisma.scholarRenewal.deleteMany({
+    where: { postSelectionRecordId: postSelectionRecord.id },
+  });
+
+  await prisma.scholarRenewal.createMany({
+    data: [
+      {
+        id: "ren_demo_nos_001",
+        postSelectionRecordId: postSelectionRecord.id,
+        renewalCycle: 1,
+        academicYear: "2025-2026",
+        status: "APPROVED",
+        progressSummary:
+          "Completed experimental coursework and preliminary spectroscopy calibration.",
+        publicationsCount: 1,
+        conferencesAttended: 1,
+        supervisorRecommendation: "RECOMMENDED",
+        supervisorRemarks: "Outstanding progress on quantum optics simulations.",
+        submissionDate: new Date("2025-11-15"),
+        reviewDate: new Date("2025-11-20"),
+        officerRemarks: "Year 1 tenure continuation approved by Verification Officer.",
+        reviewedById: "usr_demo_officer_001",
+      },
+      {
+        id: "ren_demo_nos_002",
+        postSelectionRecordId: postSelectionRecord.id,
+        renewalCycle: 2,
+        academicYear: "2026-2027",
+        status: "UPCOMING",
+      },
+      {
+        id: "ren_demo_nos_003",
+        postSelectionRecordId: postSelectionRecord.id,
+        renewalCycle: 3,
+        academicYear: "2027-2028",
+        status: "UPCOMING",
+      },
+    ],
+  });
+
+  // Seed Disbursements
+  await prisma.disbursementRecord.deleteMany({
+    where: { postSelectionRecordId: postSelectionRecord.id },
+  });
+
+  await prisma.disbursementRecord.createMany({
+    data: [
+      {
+        id: "disb_demo_nos_001",
+        postSelectionRecordId: postSelectionRecord.id,
+        installmentNumber: 1,
+        financialYear: "2025-2026",
+        amount: 1200000.0,
+        status: "PAID",
+        pfmsReference: "PFMS-2025-NOS-009182",
+        scheduledDate: new Date("2025-10-15"),
+        disbursedAt: new Date("2025-10-20"),
+        remarks: "Year 1 fellowship living & tuition grant disbursed.",
+      },
+      {
+        id: "disb_demo_nos_002",
+        postSelectionRecordId: postSelectionRecord.id,
+        installmentNumber: 2,
+        financialYear: "2026-2027",
+        amount: 1200000.0,
+        status: "PENDING",
+        scheduledDate: new Date("2026-10-15"),
+        remarks: "Year 2 fellowship grant contingent on Year 2 renewal approval.",
+      },
+      {
+        id: "disb_demo_nos_003",
+        postSelectionRecordId: postSelectionRecord.id,
+        installmentNumber: 3,
+        financialYear: "2027-2028",
+        amount: 1200000.0,
+        status: "PENDING",
+        scheduledDate: new Date("2027-10-15"),
+        remarks: "Year 3 final grant contingent on Year 3 renewal approval.",
+      },
+    ],
+  });
+
   console.log(
-    "✅ Seed completed successfully with full Phase 2E Application and Case Dossier configurations!"
+    "✅ Seed completed successfully with full Phase 2E Application and Phase 2K Post-Selection configurations!"
   );
 }
 

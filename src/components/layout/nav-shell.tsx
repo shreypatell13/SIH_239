@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldCheck, User, Settings, Activity } from "lucide-react";
+import { ShieldCheck, User, Settings, Activity, GraduationCap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SessionNavUser } from "@/components/auth/session-nav-user";
 
@@ -19,6 +19,7 @@ export function NavShell() {
     },
     { href: "/admin", label: "Scheme Studio", icon: Settings, role: "SCHEME_ADMIN" },
     { href: "/management", label: "Control Tower", icon: Activity, role: "OPERATIONS_DIRECTOR" },
+    { href: "/post-selection", label: "Post-Selection", icon: GraduationCap, role: "ALL" },
   ];
 
   return (

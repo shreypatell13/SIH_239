@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-29 — Phase 2K Post-Selection Management & Renewal Workflows (COMPLETED & VERIFIED)
+
+- Implemented database-backed Post-Selection Scholar Master Registry, multi-year progress report renewals, supervisor recommendation capture, and simulated PFMS disbursement schedules (`PostSelectionRecord`, `ScholarRenewal`, `DisbursementRecord`).
+- Built dedicated role-scoped protected APIs under `/api/post-selection/*` (`overview`, `scholars`, `renewals`, `disbursements`) with server-authoritative RBAC enforcing applicant data privacy and officer adjudication authorities.
+- Created interactive Post-Selection Console (`/post-selection`) with real-time KPI overview, filterable scholar registry, renewals queue, and disbursement tracking table.
+- Created 5-tab Scholar Detail Workspace (`/post-selection/[id]`) providing complete visibility into scholar metadata, academic renewal cycles, disbursement installments, uploaded documentation, and immutable audit logs.
+- Added modal workflows for applicant renewal submission (with auto-generated synthetic document storage keys) and officer renewal review with mandatory remarks and stage transition audit logs.
+- Seeded Ramesh Meena NOS scholar record with 3-year tenure, approved Year 1 renewal, pending/upcoming renewal cycles, and simulated PFMS disbursement schedule with synthetic transaction references.
+- Verified: Type-check (0 errors), ESLint (0 warnings), Prettier (100% compliant), Next.js production build (30/30 routes compiled), Vitest unit/integration tests (20/20 test suites, 185/185 tests passing), and Playwright E2E tests (60/60 tests passing).
+
 ## 2026-09-29 — Phase 2J Operations Control Tower (COMPLETED & VERIFIED)
 
 - Added Operations Director-protected overview, bottleneck, and paginated case-list APIs with sanitized errors and query validation.

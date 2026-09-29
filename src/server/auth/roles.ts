@@ -34,6 +34,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly string[]> = {
     "deficiency:resolve:own",
     "profile:read:own",
     "profile:update:own",
+    "scholar:read:own",
+    "renewal:submit:own",
   ],
   VERIFICATION_OFFICER: [
     "application:read:assigned",
@@ -48,6 +50,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly string[]> = {
     "case:transition:officer_actions",
     "audit:read:assigned",
     "scheme:read",
+    "scholar:read",
+    "scholar:manage",
+    "renewal:review",
+    "disbursement:update",
   ],
   SCHEME_ADMIN: [
     "scheme:create",
@@ -67,6 +73,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly string[]> = {
     "deficiency:issue",
     "deficiency:resolve:assigned",
     "audit:read:all",
+    "scholar:read",
+    "scholar:manage",
+    "renewal:read",
+    "renewal:review",
+    "disbursement:read",
+    "disbursement:update",
   ],
   OPERATIONS_DIRECTOR: [
     "analytics:read:all",
@@ -79,6 +91,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly string[]> = {
     "audit:read:all",
     "officer:workload:view",
     "scheme:read",
+    "scholar:read",
+    "scholar:manage",
+    "renewal:read",
+    "disbursement:read",
+    "post-selection:analytics",
   ],
 } as const;
 

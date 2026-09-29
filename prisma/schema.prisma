@@ -107,6 +107,33 @@ enum DisbursementStatus {
   SUSPENDED
 }
 
+enum RenewalStatus {
+  UPCOMING
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  DEFICIENT
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum ScholarStatus {
+  ACTIVE
+  ON_HOLD
+  RENEWAL_DUE
+  COMPLETED
+  TERMINATED
+}
+
+enum DisbursementRecordStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  HELD
+}
+
 enum ExtractorType {
   AI
   HUMAN_OVERRIDE
@@ -132,6 +159,7 @@ model User {
   auditLogs          AuditLog[]         @relation("UserAuditLogs")
   publishedVersions  SchemeVersion[]    @relation("SchemeVersionPublisher")
   ruleOverrides      RuleResult[]       @relation("RuleResultOverriddenBy")
+  reviewedRenewals   ScholarRenewal[]   @relation("RenewalReviewedBy")
 
   @@map("users")
 }
@@ -416,14 +444,66 @@ model PostSelectionRecord {
   supervisorName       String?
   fellowshipType       String?             // e.g. "JRF", "SRF"
   disbursementStatus   DisbursementStatus  @default(PENDING)
+  scholarStatus        ScholarStatus       @default(ACTIVE)
+  currentYear          Int                 @default(1)
+  totalTenureYears     Int                 @default(3)
   pfmsReferenceId      String?
   renewalDueDate       DateTime?
   continuationApproved Boolean?
   remarks              String?
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
+  renewals             ScholarRenewal[]
+  disbursements        DisbursementRecord[]
 
+  @@index([applicantProfileId])
+  @@index([scholarStatus])
   @@map("post_selection_records")
+}
+
+model ScholarRenewal {
+  id                       String           @id @default(uuid())
+  postSelectionRecordId    String
+  postSelectionRecord      PostSelectionRecord @relation(fields: [postSelectionRecordId], references: [id], onDelete: Cascade)
+  renewalCycle             Int              @default(1) // Year 1, 2, 3...
+  academicYear             String           // e.g. "2026-2027"
+  status                   RenewalStatus    @default(UPCOMING)
+  progressSummary          String?
+  publicationsCount        Int              @default(0)
+  conferencesAttended      Int              @default(0)
+  supervisorRecommendation String?          // "RECOMMENDED", "NOT_RECOMMENDED", "CONDITIONAL"
+  supervisorRemarks        String?
+  submissionDate           DateTime?
+  reviewDate               DateTime?
+  officerRemarks           String?
+  reviewedById             String?
+  reviewedBy               User?            @relation("RenewalReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  recheckRequired          Boolean          @default(false)
+  deficiencyDetails        String?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+
+  @@index([postSelectionRecordId, status])
+  @@map("scholar_renewals")
+}
+
+model DisbursementRecord {
+  id                    String                   @id @default(uuid())
+  postSelectionRecordId String
+  postSelectionRecord   PostSelectionRecord      @relation(fields: [postSelectionRecordId], references: [id], onDelete: Cascade)
+  installmentNumber     Int                      @default(1)
+  financialYear         String                   // e.g. "2026-2027"
+  amount                Decimal                  @db.Decimal(12, 2)
+  status                DisbursementRecordStatus @default(PENDING)
+  pfmsReference         String?                  // Synthetic PFMS batch/reference ID
+  scheduledDate         DateTime?
+  disbursedAt           DateTime?
+  remarks               String?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  @@index([postSelectionRecordId, status])
+  @@map("disbursement_records")
 }
 
 model SystemHealth {

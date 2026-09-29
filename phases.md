@@ -8,22 +8,22 @@
 
 ## Roadmap Overview & Progress Matrix
 
-| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                                                                        |
-| :------------------- | :------------------------------------------------------------ | :------------ | :------------------------------------------------------------------------------------------------------------------------- |
-| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                                                                   |
-| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                                                             |
-| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier                                            |
-| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)                                                 |
-| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | **COMPLETED** | Verified: NextAuth v4 credentials, server-authoritative RBAC, unit (31/31), E2E (11/11)                                    |
-| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | **COMPLETED** | Verified: Typed DSLs, Zod & Semantic validators, Scheme Studio UI, supersession, Vitest (52/52), Playwright (21/21)        |
-| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | **COMPLETED** | Verified: Dynamic form wizard, document checklist, readiness engine, early dossier, Vitest (65/65), Playwright (26/26)     |
-| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | **COMPLETED** | Verified: Tesseract.js multilingual OCR, field extractors, confidence model, sweep job, Vitest (83/83), Playwright (32/32) |
-| **Phase 2G**         | Deterministic Rules & Verification Engine                     | **COMPLETED** | Verified: 11 DSL operators, ST relaxation, ambiguity routing, consistency engine, Vitest (104/104), Playwright (37/37)     |
-| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | **COMPLETED** | Verified: Split-screen workspace, bounding boxes, decision desk, Vitest (15/15), Playwright (7/7)          |
-| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | **COMPLETED** | Verified: Live DB analytics, bottleneck detection, drill-down, Vitest (18/18 files, 173/173 tests), Playwright (56/56) |
-| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | _PENDING_     | Dependent on 2I                                                                                                            |
-| **Phase 2L**         | Integration Adapters & Security Hardening                     | _PENDING_     | Dependent on 2I, 2J                                                                                                        |
-| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | _PENDING_     | Dependent on 2A–2L                                                                                                         |
+| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                                                                               |
+| :------------------- | :------------------------------------------------------------ | :------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
+| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                                                                          |
+| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                                                                    |
+| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier                                                   |
+| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)                                                        |
+| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | **COMPLETED** | Verified: NextAuth v4 credentials, server-authoritative RBAC, unit (31/31), E2E (11/11)                                           |
+| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | **COMPLETED** | Verified: Typed DSLs, Zod & Semantic validators, Scheme Studio UI, supersession, Vitest (52/52), Playwright (21/21)               |
+| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | **COMPLETED** | Verified: Dynamic form wizard, document checklist, readiness engine, early dossier, Vitest (65/65), Playwright (26/26)            |
+| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | **COMPLETED** | Verified: Tesseract.js multilingual OCR, field extractors, confidence model, sweep job, Vitest (83/83), Playwright (32/32)        |
+| **Phase 2G**         | Deterministic Rules & Verification Engine                     | **COMPLETED** | Verified: 11 DSL operators, ST relaxation, ambiguity routing, consistency engine, Vitest (104/104), Playwright (37/37)            |
+| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | **COMPLETED** | Verified: Split-screen workspace, bounding boxes, decision desk, Vitest (15/15), Playwright (7/7)                                 |
+| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | **COMPLETED** | Verified: Live DB analytics, bottleneck detection, drill-down, Vitest (18/18 files, 173/173 tests), Playwright (56/56)            |
+| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | **COMPLETED** | Verified: Scholar registry, multi-year renewals, mock PFMS disbursements, Vitest (20/20 files, 185/185 tests), Playwright (60/60) |
+| **Phase 2L**         | Integration Adapters & Security Hardening                     | _PENDING_     | Dependent on 2I, 2J, 2K                                                                                                           |
+| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | _PENDING_     | Dependent on 2A–2L                                                                                                                |
 
 ---
 
@@ -239,15 +239,19 @@
 
 - **Goal:** Support selected scholars through multi-year fellowship tracking and renewals.
 - **Major Features:**
-  - Selected scholar master registry for NFST and NOS awardees.
-  - Periodic academic progress report submission portal.
-  - Supervisor recommendation verification.
-  - Disbursement milestone tracking with simulated PFMS credit status.
-- **Dependencies:** Phase 2I.
+  - Selected scholar master registry for NFST and NOS awardees with searchable/filterable listings.
+  - Periodic academic progress report submission portal with supervisor recommendations and marksheets.
+  - Authoritative human officer adjudication desk for renewals (Approve, Deficiency, Reject) with transactional audit trail.
+  - Multi-year disbursement installment schedule with simulated PFMS credit tracking and synthetic reference generation.
+  - Comprehensive 5-tab scholar detail workspace with profile, renewal history, disbursement breakdown, uploaded documents, and full audit logs.
+- **Dependencies:** Phase 2I, Phase 2J.
 - **Acceptance Criteria:**
-  - Selected applicant transitions into a verified Scholar record.
-  - Scholar can upload progress reports; officers can approve fellowship continuation.
-- **Status:** _NOT STARTED_
+  - Selected applicant transitions into a verified Scholar record with multi-year tenure.
+  - Scholar can upload progress reports; officers can adjudicate fellowship continuation.
+  - Installment disbursements can be updated with simulated PFMS credit states and transaction IDs.
+  - Server-authoritative RBAC guarantees strict tenant and role separation.
+  - All unit/integration (185/185) and E2E (60/60) test suites pass cleanly against live database.
+- **Status:** **COMPLETED** (Verified: Scholar registry, multi-year renewals, mock PFMS disbursements, Vitest 20/20 files / 185 tests, Playwright 60/60 tests).
 
 ---
 
