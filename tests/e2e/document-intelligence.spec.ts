@@ -120,4 +120,28 @@ test.describe("Phase 2F — Document Intelligence & Multilingual OCR Pipeline E2
 
     expect(res.status).toBe(403);
   });
+
+  test("7. Applicant can preview a seeded synthetic document through the protected storage route", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+    await page.getByRole("button", { name: /Sign in as APPLICANT/i }).click();
+    await expect(page).toHaveURL(/\/applicant$/);
+
+    const preview = await page.evaluate(async () => {
+      const response = await fetch(
+        "/api/documents/preview/case_demo_nos_001/CASTE_CERTIFICATE/sample_caste.pdf"
+      );
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      return {
+        status: response.status,
+        contentType: response.headers.get("content-type"),
+        signature: String.fromCharCode(...bytes.slice(0, 5)),
+      };
+    });
+
+    expect(preview.status).toBe(200);
+    expect(preview.contentType).toBe("application/pdf");
+    expect(preview.signature).toBe("%PDF-");
+  });
 });

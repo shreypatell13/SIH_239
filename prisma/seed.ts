@@ -1,7 +1,11 @@
 import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import fs from "fs";
+import path from "path";
+import { defaultStorage } from "../src/server/storage/local-storage.adapter";
 
 const prisma = new PrismaClient();
+const SEEDED_AT = new Date("2026-09-15T10:30:00.000Z");
 
 async function main() {
   console.log("🌱 Starting TribalScholar AI Phase 2D database seed...");
@@ -11,12 +15,12 @@ async function main() {
   // ==========================================
   await prisma.systemHealth.upsert({
     where: { id: "health_baseline_001" },
-    update: { status: "OPERATIONAL", checkedAt: new Date() },
+    update: { status: "OPERATIONAL", checkedAt: SEEDED_AT },
     create: {
       id: "health_baseline_001",
       checkName: "PostgreSQL Database Engine",
       status: "OPERATIONAL",
-      checkedAt: new Date(),
+      checkedAt: SEEDED_AT,
     },
   });
 
@@ -55,7 +59,14 @@ async function main() {
   ];
 
   for (const u of demoUsers) {
-    const passwordHash = bcrypt.hashSync(u.password, 12);
+    const existingUser = await prisma.user.findUnique({
+      where: { email: u.email },
+      select: { passwordHash: true },
+    });
+    const passwordHash =
+      existingUser?.passwordHash && bcrypt.compareSync(u.password, existingUser.passwordHash)
+        ? existingUser.passwordHash
+        : bcrypt.hashSync(u.password, 12);
     await prisma.user.upsert({
       where: { email: u.email },
       update: { name: u.name, role: u.role, passwordHash, isActive: true },
@@ -406,14 +417,6 @@ async function main() {
     meritBasis: "ACADEMIC_SCORE",
     guidelinesNotes: "NFST fellowship awards are subject to verified UGC/CSIR parity standards.",
   };
-
-  // Clean up any test-published subsequent versions so canonical v1 is active
-  await prisma.schemeVersion.deleteMany({
-    where: {
-      schemeId: nfstScheme.id,
-      versionNumber: { gt: 1 },
-    },
-  });
 
   await prisma.schemeVersion.upsert({
     where: {
@@ -805,14 +808,6 @@ async function main() {
       "Selection is strictly merit-ranked by Inter-Ministerial Committee based on QS ranking and academic marks.",
   };
 
-  // Clean up any test-published subsequent versions so canonical v1 is active
-  await prisma.schemeVersion.deleteMany({
-    where: {
-      schemeId: nosScheme.id,
-      versionNumber: { gt: 1 },
-    },
-  });
-
   await prisma.schemeVersion.upsert({
     where: {
       schemeId_versionNumber: {
@@ -974,6 +969,7 @@ async function main() {
       currentStage: "SUBMITTED",
       currentState: "PENDING",
       responsibleActor: "SYSTEM",
+      officerAssignedId: "usr_demo_officer_001",
       nextAction: "Automated verification underway.",
     },
     create: {
@@ -983,6 +979,7 @@ async function main() {
       currentStage: "SUBMITTED",
       currentState: "PENDING",
       responsibleActor: "SYSTEM",
+      officerAssignedId: "usr_demo_officer_001",
       nextAction: "Automated verification underway.",
     },
   });
@@ -1031,10 +1028,29 @@ async function main() {
     },
   ];
 
+  // Seed files into the same safe local-storage path used by document preview.
+  const samplePdf = fs.readFileSync(
+    path.resolve(process.cwd(), "tests/fixtures/documents/synthetic-valid.pdf")
+  );
+  for (const doc of sampleDocs) {
+    await defaultStorage.upload(doc.storagePath, samplePdf, {
+      originalName: doc.originalFilename,
+      mimeType: doc.mimeType,
+    });
+  }
+
   for (const doc of sampleDocs) {
     await prisma.document.upsert({
       where: { id: doc.id },
       update: {
+        caseDossierId: nosCase.id,
+        documentType: doc.documentType,
+        originalFilename: doc.originalFilename,
+        storagePath: doc.storagePath,
+        mimeType: doc.mimeType,
+        fileSizeBytes: samplePdf.length,
+        uploadedById: "usr_demo_applicant_001",
+        version: 1,
         isLatestVersion: true,
         processingStatus: "COMPLETED",
         classifiedAs: doc.documentType,
@@ -1048,7 +1064,7 @@ async function main() {
         originalFilename: doc.originalFilename,
         storagePath: doc.storagePath,
         mimeType: doc.mimeType,
-        fileSizeBytes: doc.fileSizeBytes,
+        fileSizeBytes: samplePdf.length,
         uploadedById: "usr_demo_applicant_001",
         version: 1,
         isLatestVersion: true,
@@ -1065,15 +1081,15 @@ async function main() {
       update: {
         status: "COMPLETED",
         attemptCount: 1,
-        completedAt: new Date(),
+        completedAt: SEEDED_AT,
       },
       create: {
         documentId: doc.id,
         status: "COMPLETED",
         attemptCount: 1,
         maxAttempts: 3,
-        startedAt: new Date(),
-        completedAt: new Date(),
+        startedAt: SEEDED_AT,
+        completedAt: SEEDED_AT,
       },
     });
   }
@@ -1241,9 +1257,10 @@ async function main() {
     where: { documentId: { in: sampleDocs.map((d) => d.id) } },
   });
 
-  for (const f of demoFields) {
+  for (const [index, f] of demoFields.entries()) {
     await prisma.extractedField.create({
       data: {
+        id: `ext_demo_nos_${String(index + 1).padStart(3, "0")}`,
         documentId: f.documentId,
         fieldKey: f.fieldKey,
         rawValue: f.rawValue,
@@ -1254,13 +1271,61 @@ async function main() {
         extractorVersion: f.extractorVersion,
         extractionMethod: f.extractionMethod,
         extractedBy: "AI",
+        createdAt: SEEDED_AT,
       },
     });
   }
 
-  // Audit log for NOS submission
-  await prisma.auditLog.create({
+  // Reset one explainable synthetic deficiency so the applicant correction flow is demoable.
+  const demoDeficiency = {
+    id: "def_demo_nos_income_illegible_001",
+    caseDossierId: nosCase.id,
+    issuedById: "usr_demo_officer_001",
+    documentType: "INCOME_CERTIFICATE" as const,
+    deficiencyType: "DOCUMENT_ILLEGIBLE" as const,
+    description:
+      "The uploaded synthetic Income Certificate sample does not expose readable certificate evidence. Please provide a clearer document for officer review.",
+    responseDeadline: new Date("2026-10-15T23:59:59.000Z"),
+  };
+  await prisma.deficiency.upsert({
+    where: { id: demoDeficiency.id },
+    update: {
+      ...demoDeficiency,
+      issuedAt: SEEDED_AT,
+      status: "OPEN",
+      resolvedAt: null,
+      recheckStatus: null,
+      recheckAt: null,
+      officerResolutionRemark: null,
+      applicantResponseText: null,
+      applicantRespondedAt: null,
+      targetDocumentId: "doc_demo_nos_income_001",
+      ruleResultId: null,
+    },
+    create: {
+      ...demoDeficiency,
+      issuedAt: SEEDED_AT,
+      targetDocumentId: "doc_demo_nos_income_001",
+      status: "OPEN",
+    },
+  });
+
+  await prisma.caseDossier.update({
+    where: { id: nosCase.id },
     data: {
+      currentStage: "DEFICIENCY_PENDING",
+      currentState: "ACTION_REQUIRED",
+      responsibleActor: "APPLICANT",
+      blocker: "Income certificate evidence needs a clearer replacement.",
+      nextAction: "Upload a clearer synthetic income certificate for targeted recheck.",
+      deadline: demoDeficiency.responseDeadline,
+    },
+  });
+
+  // Audit log for NOS submission
+  await prisma.auditLog.upsert({
+    where: { id: "audit_seed_nos_submission_001" },
+    update: {
       caseDossierId: nosCase.id,
       actorId: "usr_demo_applicant_001",
       actorRole: "APPLICANT",
@@ -1271,6 +1336,53 @@ async function main() {
         applicationNumber: nosApp.applicationNumber,
         caseNumber: nosCase.caseNumber,
         schemeCode: "NOS",
+      },
+    },
+    create: {
+      id: "audit_seed_nos_submission_001",
+      createdAt: SEEDED_AT,
+      caseDossierId: nosCase.id,
+      actorId: "usr_demo_applicant_001",
+      actorRole: "APPLICANT",
+      actionType: "APPLICATION_SUBMITTED",
+      previousState: "DRAFT",
+      newState: "SUBMITTED",
+      payload: {
+        applicationNumber: nosApp.applicationNumber,
+        caseNumber: nosCase.caseNumber,
+        schemeCode: "NOS",
+      },
+    },
+  });
+
+  await prisma.auditLog.upsert({
+    where: { id: "audit_seed_nos_income_deficiency_001" },
+    update: {
+      caseDossierId: nosCase.id,
+      actorId: "usr_demo_officer_001",
+      actorRole: "VERIFICATION_OFFICER",
+      actionType: "DEFICIENCY_ISSUED",
+      newState: "DEFICIENCY_PENDING",
+      payload: {
+        deficiencyId: demoDeficiency.id,
+        deficiencyType: demoDeficiency.deficiencyType,
+        documentType: demoDeficiency.documentType,
+        synthetic: true,
+      },
+    },
+    create: {
+      id: "audit_seed_nos_income_deficiency_001",
+      createdAt: SEEDED_AT,
+      caseDossierId: nosCase.id,
+      actorId: "usr_demo_officer_001",
+      actorRole: "VERIFICATION_OFFICER",
+      actionType: "DEFICIENCY_ISSUED",
+      newState: "DEFICIENCY_PENDING",
+      payload: {
+        deficiencyId: demoDeficiency.id,
+        deficiencyType: demoDeficiency.deficiencyType,
+        documentType: demoDeficiency.documentType,
+        synthetic: true,
       },
     },
   });

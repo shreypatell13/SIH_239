@@ -1,7 +1,10 @@
 import { test, expect } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
 
 test.describe("Phase 2H — Deficiency & Resolution Workflow E2E", () => {
   test.describe.configure({ mode: "serial" });
+  let issuedDeficiencyId: string | undefined;
   test("1. Applicant deficiency endpoint rejects unauthenticated request (401)", async ({
     request,
   }) => {
@@ -75,9 +78,10 @@ test.describe("Phase 2H — Deficiency & Resolution Workflow E2E", () => {
     expect(res.json.data.status).toBe("OPEN");
     expect(res.json.data.documentType).toBe("INCOME_CERTIFICATE");
     expect(res.json.data.description).toContain("Income Certificate");
+    issuedDeficiencyId = res.json.data.id;
   });
 
-  test("5. Applicant can view issued deficiencies and submit clarification response", async ({
+  test("5. Applicant uploads corrected evidence and targeted recheck keeps unclear evidence open", async ({
     page,
   }) => {
     await page.goto("/login");
@@ -100,30 +104,40 @@ test.describe("Phase 2H — Deficiency & Resolution Workflow E2E", () => {
     expect(listRes.status).toBe(200);
     expect(listRes.json.data.deficiencies.length).toBeGreaterThanOrEqual(1);
 
-    const openDef = listRes.json.data.deficiencies.find((d: any) => d.status === "OPEN");
+    const openDef = listRes.json.data.deficiencies.find(
+      (d: any) => d.id === issuedDeficiencyId && d.status === "OPEN"
+    );
     expect(openDef).toBeDefined();
 
-    // Respond to deficiency
+    // Upload corrected evidence; targeted recheck must keep unclear evidence open for review.
+    const fixtureBase64 = fs
+      .readFileSync(path.join(process.cwd(), "tests/fixtures/documents/synthetic-valid.pdf"))
+      .toString("base64");
     const respondRes = await page.evaluate(
-      async ({ defId }) => {
+      async ({ defId, pdfBase64 }) => {
+        const binary = atob(pdfBase64);
+        const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+        const form = new FormData();
+        form.set("clarificationText", "Synthetic replacement submitted for officer review.");
+        form.set(
+          "file",
+          new File([bytes], "synthetic-replacement-income.pdf", { type: "application/pdf" })
+        );
         const r = await fetch(
           `/api/applicant/applications/app_demo_nos_sub_001/deficiencies/${defId}/respond`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              clarificationText:
-                "Original certificate verified from issuing Tehsildar e-District portal.",
-            }),
+            body: form,
           }
         );
         return { status: r.status, json: await r.json() };
       },
-      { defId: openDef.id }
+      { defId: openDef.id, pdfBase64: fixtureBase64 }
     );
 
     expect(respondRes.status).toBe(200);
     expect(respondRes.json.success).toBe(true);
+    expect(respondRes.json.data.status).toBe("OPEN");
   });
 
   test("6. Officer can resolve deficiency with mandatory remark", async ({ page }) => {
@@ -138,7 +152,9 @@ test.describe("Phase 2H — Deficiency & Resolution Workflow E2E", () => {
     });
 
     expect(listRes.status).toBe(200);
-    const openDef = listRes.json.data.deficiencies.find((d: any) => d.status === "OPEN");
+    const openDef = listRes.json.data.deficiencies.find(
+      (d: any) => d.id === issuedDeficiencyId && d.status === "OPEN"
+    );
 
     if (openDef) {
       // Resolve deficiency

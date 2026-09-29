@@ -8,22 +8,22 @@
 
 ## Roadmap Overview & Progress Matrix
 
-| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                                                                                    |
-| :------------------- | :------------------------------------------------------------ | :------------ | :------------------------------------------------------------------------------------------------------------------------------------- |
-| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                                                                               |
-| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                                                                         |
-| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier                                                        |
-| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)                                                             |
-| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | **COMPLETED** | Verified: NextAuth v4 credentials, server-authoritative RBAC, unit (31/31), E2E (11/11)                                                |
-| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | **COMPLETED** | Verified: Typed DSLs, Zod & Semantic validators, Scheme Studio UI, supersession, Vitest (52/52), Playwright (21/21)                    |
-| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | **COMPLETED** | Verified: Dynamic form wizard, document checklist, readiness engine, early dossier, Vitest (65/65), Playwright (26/26)                 |
-| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | **COMPLETED** | Verified: Tesseract.js multilingual OCR, field extractors, confidence model, sweep job, Vitest (83/83), Playwright (32/32)             |
-| **Phase 2G**         | Deterministic Rules & Verification Engine                     | **COMPLETED** | Verified: 11 DSL operators, ST relaxation, ambiguity routing, consistency engine, Vitest (104/104), Playwright (37/37)                 |
-| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | **COMPLETED** | Verified: Split-screen workspace, bounding boxes, decision desk, Vitest (15/15), Playwright (7/7)                                      |
-| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | **COMPLETED** | Verified: Live DB analytics, bottleneck detection, drill-down, Vitest (18/18 files, 173/173 tests), Playwright (56/56)                 |
-| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | **COMPLETED** | Verified: Scholar registry, multi-year renewals, mock PFMS disbursements, Vitest (20/20 files, 185/185 tests), Playwright (60/60)      |
-| **Phase 2L**         | Integration Adapters & Security Hardening                     | **COMPLETED** | Verified: DigiLocker/PFMS/NSP/MoTA adapters, security headers, storage traversal guards, Vitest (22/22, 214 tests), Playwright (63/63) |
-| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | _PENDING_     | Dependent on 2A–2L                                                                                                                     |
+| Phase / Sub-Phase    | Focus Area                                                    | Status        | Verified Acceptance                                                                                                                           |
+| :------------------- | :------------------------------------------------------------ | :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Phase 1**          | Problem Understanding, Field Research & Solution Architecture | **COMPLETED** | System thesis, lifecycle model, and requirements defined                                                                                      |
+| **Phase 2 — Step 1** | Project Context & Persistent Agent Memory                     | **COMPLETED** | 6 persistent context files created; Git repository initialized                                                                                |
+| **Phase 2A**         | Engineering Foundation & Monorepo Tooling                     | **COMPLETED** | Verified: Next.js 14, Prisma, Postgres Docker, Vitest (10/10), ESLint, Prettier                                                               |
+| **Phase 2B**         | Database Schemas & Domain Models                              | **COMPLETED** | Verified: 13 models, 13 enums, migration SQL, repositories, Vitest (18/18)                                                                    |
+| **Phase 2C**         | Authentication & Role-Based Access Control (RBAC)             | **COMPLETED** | Verified: NextAuth v4 credentials, server-authoritative RBAC, unit (31/31), E2E (11/11)                                                       |
+| **Phase 2D**         | Scheme Studio & Declarative Configuration Engine              | **COMPLETED** | Verified: Typed DSLs, Zod & Semantic validators, Scheme Studio UI, supersession, Vitest (52/52), Playwright (21/21)                           |
+| **Phase 2E**         | Applicant Dynamic Application Flow & Checklist                | **COMPLETED** | Verified: Dynamic form wizard, document checklist, readiness engine, early dossier, Vitest (65/65), Playwright (26/26)                        |
+| **Phase 2F**         | Document Intelligence & Multilingual OCR Pipeline             | **COMPLETED** | Verified: Tesseract.js multilingual OCR, field extractors, confidence model, sweep job, Vitest (83/83), Playwright (32/32)                    |
+| **Phase 2G**         | Deterministic Rules & Verification Engine                     | **COMPLETED** | Verified: 11 DSL operators, ST relaxation, ambiguity routing, consistency engine, Vitest (104/104), Playwright (37/37)                        |
+| **Phase 2I**         | Officer Case Review Workspace & Split-Screen Evidence         | **COMPLETED** | Verified: Split-screen workspace, bounding boxes, decision desk, Vitest (15/15), Playwright (7/7)                                             |
+| **Phase 2J**         | Operations Control Tower & Bottleneck Analytics               | **COMPLETED** | Verified: Live DB analytics, bottleneck detection, drill-down, Vitest (18/18 files, 173/173 tests), Playwright (56/56)                        |
+| **Phase 2K**         | Post-Selection Management & Renewal Workflows                 | **COMPLETED** | Verified: Scholar registry, multi-year renewals, mock PFMS disbursements, Vitest (20/20 files, 185/185 tests), Playwright (60/60)             |
+| **Phase 2L**         | Integration Adapters & Security Hardening                     | **COMPLETED** | Verified: DigiLocker/PFMS/NSP/MoTA adapters, security headers, storage traversal guards, Vitest (22/22, 214 tests), Playwright (63/63)        |
+| **Phase 2M**         | End-to-End Testing, Seed Data & Demo Readiness                | **PARTIAL**   | 64/64 browser tests and 215/215 unit tests pass; seed/setup verified; full lifecycle E2E and realistic certificate fixtures remain unverified |
 
 ---
 
@@ -278,12 +278,13 @@
 
 - **Goal:** Polish the system with realistic synthetic ST applicant personas, execute end-to-end tests, and prepare seamless hackathon demonstration flows.
 - **Major Features:**
-  - Comprehensive synthetic dataset with realistic ST applicant personas for NFST and NOS (compliant, deficient, edge-case personas).
-  - Realistic mock certificates (Caste, Income, University Admission, Passport).
-  - Automated end-to-end test suite verifying the complete innovation loop.
-  - Live demo walkthrough script covering Applicant, Officer, Scheme Studio, and Control Tower roles.
+  - Idempotent synthetic demo seed for all four existing roles, NFST/NOS, application/case records, deficiency, officer assignment, scholar renewals, and mock disbursements.
+  - Stable mock integration identifiers, protected seeded PDF preview, and applicant correction/recheck/manual resolution E2E coverage.
+  - Root `README.md` documents PostgreSQL, migrations, seed, app startup, personas, walkthrough, and reset commands.
 - **Dependencies:** Phase 2A through Phase 2L.
 - **Acceptance Criteria:**
-  - All automated tests pass cleanly.
-  - A complete demo journey from application to approval and post-selection executes smoothly in under 5 minutes.
-- **Status:** _NOT STARTED_
+  - Type-check, lint, formatting, schema validation, production build, unit/integration, and Playwright suites pass.
+  - Seed can be re-run and restores demo-owned records without deleting unrelated scheme history.
+  - A complete browser journey from application submission through OCR/eligibility/decision and post-selection renewal/disbursement is exercised.
+  - Realistic synthetic certificate examples and a timed full demo rehearsal are provided.
+- **Status:** **PARTIAL** (2026-09-29). Verified: PostgreSQL 17.10 connectivity; migration status/schema consistency; repeatable seed; type-check, lint, format, schema validate, build (31 routes), Vitest (22 files/215 tests), and Playwright (64/64). Existing E2E covers the correction loop, officer workspace, control tower, integration card, and scholar registry/detail, but not the whole applicant submission-to-decision flow or renewal submission-to-disbursement flow as connected browser journeys. Seed PDF is generic synthetic content, Docker startup was not verified, and a timed complete demo rehearsal was not performed. Do not mark Phase 2M complete until these gaps are verified.

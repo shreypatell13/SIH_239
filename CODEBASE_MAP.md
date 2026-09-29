@@ -33,8 +33,18 @@
 
 ## Verification status
 
-All verification suites pass cleanly against the live PostgreSQL instance on port 5433:
+Verified against local PostgreSQL 17.10 on port 5433 (native service):
 
-- Vitest: 22/22 test suites, 214/214 tests passing
-- Playwright: 63/63 E2E tests passing
-- Type-check, ESLint, Prettier, Next.js build: 100% PASS
+- Vitest: 22/22 test files, 215/215 tests passing
+- Playwright: 64/64 E2E tests passing
+- Type-check, ESLint, Prettier, Prisma validation, migration status, production build: PASS
+- Demo startup and seed/reset commands: documented in root `README.md`; the seed was rerun after tests
+- Scope limitation: E2E coverage is not a continuous applicant submission-to-decision and post-selection renewal-to-disbursement journey; seeded PDF is generic synthetic content, not a realistic certificate fixture. Docker startup was not exercised. See `current-state.md` for Phase 2M partial status.
+
+## Phase 2M demo/readiness files
+
+- `README.md` — local PostgreSQL, migrations, deterministic seed, demo credentials, walkthrough, reset, and verification commands.
+- `prisma/seed.ts` — idempotent synthetic records and protected previewable PDF fixtures.
+- `prisma/migrations/20260929120000_phase_2m_schema_reconciliation/` — completes migration history for the current Prisma schema.
+- `tests/e2e/deficiency.spec.ts` and `tests/e2e/document-intelligence.spec.ts` — corrected-evidence recheck/manual resolution and protected synthetic PDF preview scenarios.
+- `src/server/integrations/core/synthetic-id.ts` — stable IDs for demo adapter responses.

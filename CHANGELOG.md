@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-29 — Phase 2M End-to-End Testing & Demo Readiness (PARTIAL)
+
+- Made synthetic seed records repeatable: stable seed timestamps/IDs, fixed seed audit rows, preserved seeded password hashes, safe seeded PDF storage, and no deletion of later scheme versions.
+- Added a schema reconciliation migration; validated the migration chain against an isolated shadow PostgreSQL database and recorded the already-existing live schema as applied.
+- Added `prisma:migrate:deploy`, aligned Docker Compose with PostgreSQL 17 and the configured 5433 port, and documented local setup/personas/walkthrough/reset in `README.md`.
+- Replaced random mock integration identifiers and fallback PFMS references with stable deterministic values.
+- Strengthened E2E coverage for correction upload → targeted recheck → officer resolution and protected PDF preview; fixed test-created scheme cleanup.
+- Verified: Prisma validate/migrate status, type-check, lint, format, build (31 routes), Vitest (22 files/215 tests), Playwright (64/64), and repeat seed.
+- **Partial:** full applicant submission/OCR/decision and post-selection renewal/disbursement are not yet continuous E2E workflows; certificate files are generic synthetic PDFs; fresh Docker startup and timed full-demo rehearsal remain unverified.
+
 ## 2026-09-29 — Phase 2L Integration Adapters & Security Hardening (COMPLETED & VERIFIED)
 
 - Created production-ready, decoupled integration adapter boundaries for external government systems (`IDigiLockerAdapter`, `IPfmsAdapter`, `INspAdapter`, `IMotaAdapter`).

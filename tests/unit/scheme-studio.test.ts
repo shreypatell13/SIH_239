@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { prisma } from "@/server/db";
 import { schemeValidationService } from "@/server/services/scheme-validation.service";
 import { schemeService } from "@/server/services/scheme.service";
 import { getDemoUser } from "@/server/auth/session";
@@ -19,6 +20,20 @@ import {
 } from "@/server/domain/scheme/validators";
 
 describe("Phase 2D: Scheme Studio & Declarative Configuration Engine", () => {
+  const testSchemeCode = "TS_PHASE2M";
+
+  beforeAll(async () => {
+    // Remove only records created by this test suite; earlier runs used a timestamp suffix.
+    await prisma.scheme.deleteMany({
+      where: { code: { startsWith: "TS_" }, name: "Test Supersession Scheme" },
+    });
+    await prisma.scheme.deleteMany({ where: { code: testSchemeCode } });
+  });
+
+  afterAll(async () => {
+    await prisma.scheme.deleteMany({ where: { code: testSchemeCode } });
+  });
+
   const validFormSchema: FormSchema = {
     version: "1.0",
     sections: [
@@ -559,10 +574,9 @@ describe("Phase 2D: Scheme Studio & Declarative Configuration Engine", () => {
 
     it("should atomically supersede old version when publishing a new version as SCHEME_ADMIN", async () => {
       // Create a dedicated test scheme to keep seed data pristine (max 16 chars)
-      const testCode = `TS_${Date.now().toString().slice(-8)}`;
       const testScheme = await schemeService.createScheme(
         {
-          code: testCode,
+          code: testSchemeCode,
           name: "Test Supersession Scheme",
           description: "Testing version supersession and atomic transaction",
         },
@@ -590,7 +604,7 @@ describe("Phase 2D: Scheme Studio & Declarative Configuration Engine", () => {
       expect(v2.versionNumber).toBe(2);
 
       // 3. Verify scheme reports v2 as active
-      const activeVersion = await schemeService.getActiveVersionByCode(testCode);
+      const activeVersion = await schemeService.getActiveVersionByCode(testSchemeCode);
       expect(activeVersion?.id).toBe(v2.id);
       expect(activeVersion?.isActive).toBe(true);
       expect(activeVersion?.versionNumber).toBe(2);

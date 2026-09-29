@@ -5,6 +5,7 @@ import {
   DigiLockerDocMetadata,
 } from "./digilocker.interface";
 import { IntegrationHealth } from "../core/types";
+import { syntheticToken } from "../core/synthetic-id";
 import {
   IntegrationTimeoutError,
   IntegrationUnavailableError,
@@ -72,7 +73,7 @@ export class MockDigiLockerAdapter implements IDigiLockerAdapter {
 
     const holder = request.candidateName || "Ramesh Meena";
     const state = request.stateDomicile || "Rajasthan";
-    const verificationId = `DL-VRF-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const verificationId = `DL-VRF-${syntheticToken(`${request.docType}|${request.docNumber}`, 10)}`;
 
     let issuer = "Government of " + state;
     if (request.docType === "CASTE_CERTIFICATE") {

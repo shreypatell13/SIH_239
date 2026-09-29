@@ -55,6 +55,18 @@ describe("Phase 2L — Integration Adapters & Boundaries", () => {
       expect(res.metadata.categoryVerified).toBe("ST (Scheduled Tribe)");
     });
 
+    it("returns a stable verification ID for the same demo document", async () => {
+      const request = {
+        docType: "CASTE_CERTIFICATE" as const,
+        docNumber: "ST-RAJ-DEMO-001",
+        candidateName: "Synthetic Applicant",
+        stateDomicile: "Rajasthan",
+      };
+      const first = await digiLocker.verifyDocument(request);
+      const second = await digiLocker.verifyDocument(request);
+      expect(second.verificationId).toBe(first.verificationId);
+    });
+
     it("throws IntegrationValidationError when document number is empty", async () => {
       await expect(
         digiLocker.verifyDocument({
@@ -139,7 +151,7 @@ describe("Phase 2L — Integration Adapters & Boundaries", () => {
     });
 
     it("initiates DBT grant disbursement with synthetic PFMS reference", async () => {
-      const res = await pfms.initiateDisbursement({
+      const request = {
         sanctionOrderNumber: "SANCTION-NOS-2025-001",
         scholarId: "SCHOLAR-RM-01",
         schemeCode: "NOS",
@@ -147,13 +159,18 @@ describe("Phase 2L — Integration Adapters & Boundaries", () => {
         installmentNumber: 1,
         beneficiaryAccountMasked: "XXXX-XXXX-1012",
         ifscCode: "SBIN0001234",
-      });
+      };
+      const res = await pfms.initiateDisbursement(request);
+      const repeated = await pfms.initiateDisbursement(request);
 
       expect(res.amountInr).toBe(1200000);
       expect(res.status).toBe("CREDITED");
       expect(res.pfmsReferenceNumber).toMatch(/^PFMS-\d{4}-NOS-\d{6}$/);
       expect(res.utrNumber).toMatch(/^UTR\d+/);
       expect(res.source).toBe("PFMS_MOCK_ADAPTER");
+      expect(repeated.pfmsReferenceNumber).toBe(res.pfmsReferenceNumber);
+      expect(repeated.transactionId).toBe(res.transactionId);
+      expect(repeated.utrNumber).toBe(res.utrNumber);
     });
 
     it("rejects zero or negative disbursement amounts", async () => {
@@ -215,17 +232,20 @@ describe("Phase 2L — Integration Adapters & Boundaries", () => {
 
   describe("4. MoTA Quota & Gateway Adapter", () => {
     it("acknowledges national quota sync requests", async () => {
-      const res = await mota.syncQuota({
+      const request = {
         schemeCode: "NOS",
         fiscalYear: "2024-2025",
         totalSlots: 100,
         utilizedSlots: 42,
-      });
+      };
+      const res = await mota.syncQuota(request);
+      const repeated = await mota.syncQuota(request);
 
       expect(res.acknowledged).toBe(true);
       expect(res.schemeCode).toBe("NOS");
       expect(res.motaReferenceNumber).toContain("MOTA/SCHEME/NOS/2024-2025");
       expect(res.source).toBe("MOTA_MOCK_ADAPTER");
+      expect(repeated.syncId).toBe(res.syncId);
     });
   });
 

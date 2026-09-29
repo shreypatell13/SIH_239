@@ -7,6 +7,7 @@ import {
   PfmsStatusCheckRequest,
 } from "./pfms.interface";
 import { IntegrationHealth } from "../core/types";
+import { syntheticDigits, syntheticToken } from "../core/synthetic-id";
 import {
   IntegrationTimeoutError,
   IntegrationUnavailableError,
@@ -88,7 +89,7 @@ export class MockPfmsAdapter implements IPfmsAdapter {
     else if (cleanIfsc.startsWith("HDFC")) bankName = "HDFC Bank";
     else if (cleanIfsc.startsWith("ICIC")) bankName = "ICICI Bank";
 
-    const beneficiaryCode = `BEN-${cleanIfsc.substring(0, 4)}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const beneficiaryCode = `BEN-${cleanIfsc.substring(0, 4)}-${syntheticToken(`${cleanIfsc}|${request.accountNumber.trim()}`, 6)}`;
 
     return {
       isValid: true,
@@ -128,16 +129,16 @@ export class MockPfmsAdapter implements IPfmsAdapter {
       throw new IntegrationAuthError(this.providerId, "Simulated agency digital signature expired");
     }
 
-    const year = new Date().getFullYear();
+    const year = request.academicYear?.match(/20\d{2}/)?.[0] || "2026";
     const scheme = request.schemeCode.toUpperCase();
-    const hex = Math.floor(100000 + Math.random() * 900000).toString();
-    const pfmsRef = `PFMS-${year}-${scheme}-${hex}`;
-    const utr = `UTR${Date.now().toString().slice(-8)}${Math.floor(1000 + Math.random() * 9000)}`;
+    const eventKey = `${request.sanctionOrderNumber}|${request.scholarId}|${request.installmentNumber}|${scheme}|${request.amountInr}`;
+    const pfmsRef = `PFMS-${year}-${scheme}-${syntheticDigits(eventKey)}`;
+    const utr = `UTR${syntheticDigits(`UTR|${eventKey}`, 12)}`;
 
     const isSimulatedReject = request.sanctionOrderNumber.includes("SIMULATE_REJECT");
 
     return {
-      transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+      transactionId: `TXN-MOCK-${syntheticToken(eventKey, 12)}`,
       pfmsReferenceNumber: pfmsRef,
       sanctionOrderNumber: request.sanctionOrderNumber,
       amountInr: request.amountInr,
@@ -159,12 +160,13 @@ export class MockPfmsAdapter implements IPfmsAdapter {
     }
 
     return {
-      transactionId: request.transactionId || `TXN-QUERY-${Date.now()}`,
+      transactionId:
+        request.transactionId || `TXN-QUERY-${syntheticToken(request.pfmsReferenceNumber, 10)}`,
       pfmsReferenceNumber: request.pfmsReferenceNumber,
       sanctionOrderNumber: "SO-SANCTION-VERIFIED",
       amountInr: 1200000,
       status: "CREDITED",
-      utrNumber: `UTR${Date.now().toString().slice(-8)}9921`,
+      utrNumber: `UTR${syntheticDigits(`STATUS|${request.pfmsReferenceNumber}`, 12)}`,
       timestamp: new Date().toISOString(),
       source: "PFMS_MOCK_ADAPTER",
     };

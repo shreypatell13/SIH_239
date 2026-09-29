@@ -6,6 +6,7 @@ import {
   MotaSanctionNotificationResponse,
 } from "./mota.interface";
 import { IntegrationHealth } from "../core/types";
+import { syntheticToken } from "../core/synthetic-id";
 import { IntegrationUnavailableError, IntegrationValidationError } from "../core/errors";
 
 export class MockMotaAdapter implements IMotaAdapter {
@@ -45,7 +46,7 @@ export class MockMotaAdapter implements IMotaAdapter {
     }
 
     return {
-      syncId: `SYNC-MOTA-${Date.now()}`,
+      syncId: `SYNC-MOTA-${syntheticToken(`${request.schemeCode}|${request.fiscalYear}|${request.totalSlots}|${request.utilizedSlots}`, 10)}`,
       schemeCode: request.schemeCode,
       acknowledged: true,
       motaReferenceNumber: `MOTA/SCHEME/${request.schemeCode.toUpperCase()}/${request.fiscalYear}`,
@@ -62,7 +63,7 @@ export class MockMotaAdapter implements IMotaAdapter {
     }
 
     return {
-      notificationId: `NOTIF-MOTA-${Date.now()}`,
+      notificationId: `NOTIF-MOTA-${syntheticToken(`${request.schemeCode}|${request.sanctionOrderNumber}|${request.fellowshipCategory}|${request.awardedAmountInr}`, 10)}`,
       status: "RECORDED",
       recordedAt: new Date().toISOString(),
       source: "MOTA_MOCK_ADAPTER",

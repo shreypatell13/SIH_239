@@ -6,6 +6,7 @@ import {
   NspScholarRegistrationResponse,
 } from "./nsp.interface";
 import { IntegrationHealth } from "../core/types";
+import { syntheticToken } from "../core/synthetic-id";
 import {
   IntegrationTimeoutError,
   IntegrationUnavailableError,
@@ -95,7 +96,7 @@ export class MockNspAdapter implements INspAdapter {
     }
 
     const cleanScheme = request.schemeCode.toUpperCase();
-    const appId = `NSP-${cleanScheme}-${Date.now().toString().slice(-6)}`;
+    const appId = `NSP-${cleanScheme}-${syntheticToken(`${request.scholarName}|${cleanScheme}|${request.academicYear}|${request.sanctionOrderNumber}`, 10)}`;
 
     return {
       nspApplicationId: appId,

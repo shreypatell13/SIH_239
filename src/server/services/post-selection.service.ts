@@ -646,7 +646,12 @@ export class PostSelectionService {
 
     if (updateData.status === DisbursementRecordStatus.PAID) {
       if (!pfmsRef) {
-        pfmsRef = `PFMS-${new Date().getFullYear()}-${disbursement.postSelectionRecord.schemeVersion.scheme.code}-${Math.floor(100000 + Math.random() * 900000)}`;
+        const year = disbursement.scheduledDate?.getUTCFullYear() || 2026;
+        const recordSuffix = disbursement.id
+          .replace(/[^a-zA-Z0-9]/g, "")
+          .slice(-6)
+          .toUpperCase();
+        pfmsRef = `PFMS-${year}-${disbursement.postSelectionRecord.schemeVersion.scheme.code}-${recordSuffix}`;
       }
       if (!disbursedAt) {
         disbursedAt = new Date();

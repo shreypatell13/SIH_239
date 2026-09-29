@@ -222,9 +222,18 @@ describe("Phase 2K Post-Selection Management & Renewal Workflows", () => {
         },
         officerContext
       );
+      const repeated = await service.updateDisbursementStatus(
+        target.id,
+        {
+          status: DisbursementRecordStatus.PAID,
+          remarks: "Disbursed via automated DBT batch credit.",
+        },
+        officerContext
+      );
 
       expect(updated.status).toBe(DisbursementRecordStatus.PAID);
       expect(updated.pfmsReference).toMatch(/^PFMS-/);
+      expect(repeated.pfmsReference).toBe(updated.pfmsReference);
       expect(updated.disbursedAt).toBeDefined();
     });
   });
