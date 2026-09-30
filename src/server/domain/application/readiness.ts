@@ -42,7 +42,7 @@ export function evaluateDocumentAiAudit(
       mismatchDetails: null,
       qualityWarning: null,
       infoMismatches: [],
-      overallVerdict: (doc.processingStatus === "PROCESSING" ? "PROCESSING" : "PENDING") as const,
+      overallVerdict: doc.processingStatus === "PROCESSING" ? ("PROCESSING" as const) : ("PENDING" as const),
       summaryTitle: "Analyzing Document Intelligence...",
       summaryMessage: "AI OCR, classification, and field extraction in progress (~35s)...",
       actionableGuidance: undefined,
