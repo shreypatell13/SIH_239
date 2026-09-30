@@ -64,30 +64,30 @@ export function resolveRuleInput(
   switch (rule.source) {
     case "FORM_DATA": {
       const formVal = formData[rule.sourceField];
-      if (formVal !== undefined && formVal !== null && formVal !== "") {
-        return {
-          value: formVal,
-          evidenceFieldIds: [],
-          evidenceList: [],
-          isComputed: false,
-        };
-      }
-
-      // Fallback to applicant profile field if matching
       const profileVal = (applicantProfile as Record<string, unknown>)[rule.sourceField];
-      if (profileVal !== undefined && profileVal !== null && profileVal !== "") {
-        return {
-          value: profileVal,
-          evidenceFieldIds: [],
-          evidenceList: [],
-          isComputed: false,
-        };
-      }
+      const resolvedVal =
+        formVal !== undefined && formVal !== null && formVal !== ""
+          ? formVal
+          : profileVal !== undefined && profileVal !== null && profileVal !== ""
+            ? profileVal
+            : null;
+
+      // Associate corresponding extracted evidence fields for human-in-the-loop verification
+      const targetKey = rule.sourceField.trim().toLowerCase();
+      const matches = extractedEvidences.filter((e) => {
+        const k = e.fieldKey.trim().toLowerCase();
+        return (
+          k === targetKey ||
+          (targetKey === "academicpercentage" && (k === "percentagemarks" || k === "percentage")) ||
+          (targetKey === "castecategory" && (k === "castecategory" || k === "tribename")) ||
+          (targetKey === "annualfamilyincome" && k === "annualfamilyincome")
+        );
+      });
 
       return {
-        value: null,
-        evidenceFieldIds: [],
-        evidenceList: [],
+        value: resolvedVal,
+        evidenceFieldIds: matches.map((m) => m.id),
+        evidenceList: matches,
         isComputed: false,
       };
     }

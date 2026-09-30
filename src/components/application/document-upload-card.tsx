@@ -11,6 +11,9 @@ import {
   Trash2,
   Eye,
   AlertCircle,
+  AlertTriangle,
+  Info,
+  Sparkles,
   Loader2,
   FileCheck,
 } from "lucide-react";
@@ -52,8 +55,16 @@ export function DocumentUploadCard({
     if (disabled || isUploading) return;
     setErrorMsg(null);
 
-    // 1. Client-side MIME check
-    if (allowedMimeTypes.length > 0 && !allowedMimeTypes.includes(file.type)) {
+    // 1. Client-side MIME check (fallback to filename extension if browser MIME is unset)
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
+    const extMimeMap: Record<string, string> = {
+      pdf: "application/pdf",
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+    };
+    const resolvedMime = file.type || (fileExt ? extMimeMap[fileExt] : "");
+    if (allowedMimeTypes.length > 0 && resolvedMime && !allowedMimeTypes.includes(resolvedMime)) {
       setErrorMsg(`Invalid file type. Allowed: ${allowedMimeTypes.join(", ")}`);
       return;
     }
@@ -258,59 +269,195 @@ export function DocumentUploadCard({
         </div>
       </div>
 
-      {/* Uploaded File Info Card */}
+      {/* Uploaded File Info Card & AI Intelligence Status */}
       {isUploaded && uploadedDocument && (
-        <div className="mt-3 flex items-center justify-between rounded-md border border-emerald-100 bg-white p-3 text-xs">
-          <div className="flex items-center gap-2.5">
-            <FileCheck className="h-4 w-4 text-emerald-600" />
-            <div>
-              <span className="font-medium text-slate-800">
-                {uploadedDocument.originalFilename}
-              </span>
-              <span className="ml-2 text-slate-500">
-                ({(uploadedDocument.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB)
+        <div className="mt-3 space-y-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-200 bg-white p-3 text-xs shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <FileCheck className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+              <div>
+                <span className="font-semibold text-slate-800">
+                  {uploadedDocument.originalFilename}
+                </span>
+                <span className="ml-2 text-slate-500 font-mono text-[11px]">
+                  ({(uploadedDocument.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB)
+                </span>
+              </div>
+            </div>
+
+            {uploadedDocument.processingStatus === "PENDING" && (
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1.5 border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-800"
+              >
+                <Loader2 className="h-3 w-3 animate-spin text-amber-600" />
+                Document queued for AI intelligence (~35s)...
+              </Badge>
+            )}
+            {uploadedDocument.processingStatus === "PROCESSING" && (
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1.5 border-blue-300 bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-800"
+              >
+                <Loader2 className="h-3 w-3 animate-spin text-blue-600" />
+                Analyzing OCR, Classification & Extracting Intelligence...
+              </Badge>
+            )}
+            {uploadedDocument.processingStatus === "COMPLETED" && !uploadedDocument.aiAudit?.hasIssues && (
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1.5 border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                Document Intelligence Verified
+              </Badge>
+            )}
+            {uploadedDocument.aiAudit?.mismatchDetected && (
+              <Badge
+                variant="destructive"
+                className="flex items-center gap-1.5 bg-rose-600 px-2.5 py-1 text-[11px] font-semibold text-white shadow-xs"
+              >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Document Type Mismatch Detected
+              </Badge>
+            )}
+            {!uploadedDocument.aiAudit?.mismatchDetected &&
+              uploadedDocument.aiAudit?.qualityWarning?.isBlurryOrLowQuality && (
+                <Badge
+                  variant="outline"
+                  className="flex items-center gap-1.5 border-amber-400 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800"
+                >
+                  <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                  Quality Warning / Potential Blur
+                </Badge>
+              )}
+            {!uploadedDocument.aiAudit?.mismatchDetected &&
+              !uploadedDocument.aiAudit?.qualityWarning &&
+              uploadedDocument.aiAudit?.infoMismatches &&
+              uploadedDocument.aiAudit.infoMismatches.length > 0 && (
+                <Badge
+                  variant="outline"
+                  className="flex items-center gap-1.5 border-indigo-300 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-800"
+                >
+                  <Info className="h-3.5 w-3.5 text-indigo-600" />
+                  Information Mismatch
+                </Badge>
+              )}
+            {uploadedDocument.processingStatus === "REVIEW_REQUIRED" &&
+              !uploadedDocument.aiAudit?.mismatchDetected &&
+              !uploadedDocument.aiAudit?.qualityWarning &&
+              (!uploadedDocument.aiAudit?.infoMismatches ||
+                uploadedDocument.aiAudit.infoMismatches.length === 0) && (
+                <Badge
+                  variant="outline"
+                  className="flex items-center gap-1.5 border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-800"
+                >
+                  <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                  Review required by verification officer
+                </Badge>
+              )}
+            {uploadedDocument.processingStatus === "FAILED" && (
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1.5 border-rose-300 bg-rose-50 px-2.5 py-1 text-[11px] font-medium text-rose-800"
+              >
+                <AlertCircle className="h-3.5 w-3.5 text-rose-600" />
+                Processing failed: Please upload a clearer copy.
+              </Badge>
+            )}
+          </div>
+
+          {/* 1. DOCUMENT MISMATCH ALERT BANNER */}
+          {uploadedDocument.aiAudit?.mismatchDetected && (
+            <div className="rounded-lg border border-rose-300 bg-rose-50/90 p-3.5 text-xs text-rose-950 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="flex items-start gap-2.5">
+                <div className="rounded-full bg-rose-100 p-1.5 text-rose-600 flex-shrink-0">
+                  <AlertTriangle className="h-4 w-4" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="font-bold text-rose-900 text-sm">
+                      ⚠️ AI Document Type Mismatch Detected
+                    </span>
+                    {uploadedDocument.aiAudit.mismatchDetails?.confidence && (
+                      <span className="rounded bg-rose-200/80 px-2 py-0.5 text-[10px] font-bold text-rose-800">
+                        Match Confidence: {uploadedDocument.aiAudit.mismatchDetails.confidence}%
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-rose-800 leading-relaxed font-medium">
+                    {uploadedDocument.aiAudit.mismatchDetails?.message}
+                  </p>
+                  <p className="pt-1 text-[11px] font-semibold text-rose-700">
+                    👉 <strong>Action Required:</strong> {uploadedDocument.aiAudit.actionableGuidance || "Please replace this file with the correct document."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2. BLUR / LOW QUALITY WARNING BANNER */}
+          {uploadedDocument.aiAudit?.qualityWarning?.isBlurryOrLowQuality && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50/90 p-3.5 text-xs text-amber-950 shadow-sm">
+              <div className="flex items-start gap-2.5">
+                <div className="rounded-full bg-amber-100 p-1.5 text-amber-600 flex-shrink-0">
+                  <AlertCircle className="h-4 w-4" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="font-bold text-amber-900 text-sm">
+                      ⚠️ Low OCR Clarity / Potential Blur Warning
+                    </span>
+                    <span className="rounded bg-amber-200/80 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                      Clarity Score: {uploadedDocument.aiAudit.qualityWarning.confidence}%
+                    </span>
+                  </div>
+                  <p className="text-amber-800 leading-relaxed">
+                    {uploadedDocument.aiAudit.qualityWarning.message}
+                  </p>
+                  <p className="pt-1 text-[11px] text-amber-700 font-medium">
+                    💡 <strong>Tip:</strong> Ensure your document scan is uncropped, well-lit, and all stamps/signatures are clearly legible to avoid verification queries.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. INFO MISMATCH ALERT BANNER */}
+          {uploadedDocument.aiAudit?.infoMismatches &&
+            uploadedDocument.aiAudit.infoMismatches.length > 0 && (
+              <div className="rounded-lg border border-indigo-200 bg-indigo-50/90 p-3.5 text-xs text-indigo-950 shadow-sm">
+                <div className="flex items-start gap-2.5">
+                  <div className="rounded-full bg-indigo-100 p-1.5 text-indigo-600 flex-shrink-0">
+                    <Info className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <span className="font-bold text-indigo-900 text-sm">
+                      ℹ️ Extracted Information Discrepancy Detected
+                    </span>
+                    <ul className="list-disc pl-4 space-y-1 text-indigo-800">
+                      {uploadedDocument.aiAudit.infoMismatches.map((m, idx) => (
+                        <li key={idx} className="leading-snug">
+                          <strong>{m.fieldLabel}:</strong> {m.message}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-[11px] text-indigo-700 font-medium">
+                      💡 <strong>Note:</strong> Some information in your application does not match the uploaded document. Please review the highlighted field and submit the correct document/information.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          {/* 4. VERIFIED SUCCESS BANNER */}
+          {uploadedDocument.aiAudit?.overallVerdict === "VERIFIED" && (
+            <div className="flex items-center gap-2 rounded-md border border-emerald-200/70 bg-emerald-50/80 px-3 py-2 text-xs font-medium text-emerald-800">
+              <Sparkles className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+              <span>
+                <strong>AI Check Passed:</strong> Document classification, text clarity, and applicant details matched successfully.
               </span>
             </div>
-          </div>
-          {uploadedDocument.processingStatus === "PENDING" && (
-            <Badge
-              variant="outline"
-              className="border-amber-200 bg-amber-50 text-[10px] text-amber-700"
-            >
-              Your document is queued for processing.
-            </Badge>
-          )}
-          {uploadedDocument.processingStatus === "PROCESSING" && (
-            <Badge
-              variant="outline"
-              className="border-blue-200 bg-blue-50 text-[10px] text-blue-700"
-            >
-              Your document is being analysed.
-            </Badge>
-          )}
-          {uploadedDocument.processingStatus === "COMPLETED" && (
-            <Badge
-              variant="outline"
-              className="border-emerald-200 bg-emerald-50 text-[10px] text-emerald-700"
-            >
-              Document processing completed.
-            </Badge>
-          )}
-          {uploadedDocument.processingStatus === "REVIEW_REQUIRED" && (
-            <Badge
-              variant="outline"
-              className="border-amber-200 bg-amber-50 text-[10px] text-amber-700"
-            >
-              Our team is reviewing this document. No action is needed yet.
-            </Badge>
-          )}
-          {uploadedDocument.processingStatus === "FAILED" && (
-            <Badge
-              variant="outline"
-              className="border-rose-200 bg-rose-50 text-[10px] text-rose-700"
-            >
-              {"We couldn't process this document. Please upload a clearer copy."}
-            </Badge>
           )}
         </div>
       )}

@@ -60,10 +60,26 @@ export function SplitScreenWorkspace({ initialData, currentOfficerId }: SplitScr
   /**
    * Bi-directional Navigation: Left pane evidence click -> Right pane document viewer
    */
-  const handleSelectEvidence = (fieldId: string) => {
-    // Search across all documents for this field
+  const handleSelectEvidence = (fieldId: string, documentId?: string) => {
+    // 1. If documentId is provided, look in that document first
+    if (documentId) {
+      const targetDoc = data.documents.find((d) => d.id === documentId);
+      if (targetDoc) {
+        const found = targetDoc.extractedFields.find(
+          (f) => f.id === fieldId || f.fieldKey === fieldId
+        );
+        if (found) {
+          setSelectedDocId(targetDoc.id);
+          setCurrentPage(found.pageNumber || 1);
+          setSelectedField(found);
+          return;
+        }
+      }
+    }
+
+    // 2. Search across all documents for this field
     for (const doc of data.documents) {
-      const found = doc.extractedFields.find((f) => f.id === fieldId);
+      const found = doc.extractedFields.find((f) => f.id === fieldId || f.fieldKey === fieldId);
       if (found) {
         setSelectedDocId(doc.id);
         setCurrentPage(found.pageNumber || 1);

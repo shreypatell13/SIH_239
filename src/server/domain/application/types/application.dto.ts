@@ -99,6 +99,43 @@ export interface ApplicationDetailDTO {
   } | null;
 }
 
+export interface DocumentAiAuditDTO {
+  hasIssues: boolean;
+  mismatchDetected: boolean;
+  mismatchDetails?: {
+    expectedType: DocumentType;
+    expectedLabel: string;
+    detectedType: DocumentType;
+    detectedLabel: string;
+    confidence: number;
+    message: string;
+  } | null;
+  qualityWarning?: {
+    isBlurryOrLowQuality: boolean;
+    confidence: number;
+    message: string;
+  } | null;
+  infoMismatches: Array<{
+    fieldKey: string;
+    fieldLabel: string;
+    expectedValue: string;
+    extractedValue: string;
+    message: string;
+  }>;
+  overallVerdict:
+    | "VERIFIED"
+    | "MISMATCH_DETECTED"
+    | "QUALITY_WARNING"
+    | "INFO_MISMATCH"
+    | "REVIEW_REQUIRED"
+    | "PENDING"
+    | "PROCESSING"
+    | "FAILED";
+  summaryTitle?: string;
+  summaryMessage?: string;
+  actionableGuidance?: string;
+}
+
 export interface DocumentSummaryDTO {
   id: string;
   caseDossierId: string;
@@ -110,6 +147,9 @@ export interface DocumentSummaryDTO {
   version: number;
   isLatestVersion: boolean;
   processingStatus: ProcessingStatus;
+  classifiedAs?: DocumentType | null;
+  classificationConfidence?: number | null;
+  aiAudit?: DocumentAiAuditDTO;
   uploadedAt: string;
   previewUrl: string;
 }

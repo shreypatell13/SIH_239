@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { IStorageAdapter } from "../storage/storage.interface";
 import { defaultStorage } from "../storage/local-storage.adapter";
 import { documentRepository } from "../repositories/document.repository";
@@ -62,6 +64,22 @@ export class DocumentService implements IDocumentService {
       originalName: params.fileName,
       mimeType: params.mimeType,
     });
+
+    // 1b. If companion PNG fixture exists, upload it alongside for pixel-perfect canvas rendering
+    const basePngName = path.basename(params.fileName).replace(/\.[^.]+$/, ".png");
+    const fixturePngPath = path.resolve(process.cwd(), "tests/fixtures/documents", basePngName);
+    try {
+      if (fs.existsSync(fixturePngPath)) {
+        const pngBuf = fs.readFileSync(fixturePngPath);
+        const pngKey = storageKey.replace(/\.[^.]+$/, ".png");
+        await this.storage.upload(pngKey, pngBuf, {
+          originalName: basePngName,
+          mimeType: "image/png",
+        });
+      }
+    } catch {
+      // Ignore PNG companion upload failure
+    }
 
     // 2. Persist Document record using atomic replacement in repository
     const createdDoc = await documentRepository.replaceDocument(

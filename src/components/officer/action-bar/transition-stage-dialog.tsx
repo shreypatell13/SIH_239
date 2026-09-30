@@ -53,7 +53,11 @@ export function TransitionStageDialog({
 
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to advance case stage.");
+        throw new Error(
+          typeof json.error === "string"
+            ? json.error
+            : json.error?.message || "Failed to advance case stage."
+        );
       }
 
       onTransitionCompleted();

@@ -1,0 +1,498 @@
+{
+  "demo-admission-offer.pdf": [
+    {
+      "x": 0.0672,
+      "y": 0.0371,
+      "w": 0.3739,
+      "h": 0.018,
+      "text": "TRIBALSCHOLAR AI  /  SYNTHETIC DEMO"
+    },
+    {
+      "x": 0.0672,
+      "y": 0.0653,
+      "w": 0.4589,
+      "h": 0.0294,
+      "text": "OFFER OF ADMISSION LETTER"
+    },
+    {
+      "x": 0.1284,
+      "y": 0.1675,
+      "w": 0.7433,
+      "h": 0.0164,
+      "text": "DEMO ONLY - NOT AN OFFICIAL RECORD - NOT VALID FOR IDENTIFICATION OR BENEFITS"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.2352,
+      "w": 0.2497,
+      "h": 0.018,
+      "text": "Name: Ramesh Kumar Meena"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.285,
+      "w": 0.2969,
+      "h": 0.018,
+      "text": "Offer of Admission: Ph.D. in Physics"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.3349,
+      "w": 0.3318,
+      "h": 0.018,
+      "text": "Institution: Example Research University"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.3848,
+      "w": 0.186,
+      "h": 0.018,
+      "text": "Department of Physics"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4347,
+      "w": 0.2507,
+      "h": 0.018,
+      "text": "Academic Session: 2026-2027"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4846,
+      "w": 0.2322,
+      "h": 0.018,
+      "text": "Admission Date: 01/08/2026"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.5344,
+      "w": 0.3133,
+      "h": 0.018,
+      "text": "Offer Reference: DEMO-OFFER-0001"
+    },
+    {
+      "x": 0.0706,
+      "y": 0.8884,
+      "w": 0.8474,
+      "h": 0.0305,
+      "text": "All names, institutions, dates and reference numbers shown here are invented for software testing. This sample has no legal or administrative validity."
+    },
+    {
+      "x": 0.0706,
+      "y": 0.9566,
+      "w": 0.3832,
+      "h": 0.0131,
+      "text": "SYNTHETIC FIXTURE  |  TRIBALSCHOLAR AI LOCAL DEMO"
+    }
+  ],
+  "demo-degree-transcript.pdf": [
+    {
+      "x": 0.0672,
+      "y": 0.0371,
+      "w": 0.3739,
+      "h": 0.018,
+      "text": "TRIBALSCHOLAR AI  /  SYNTHETIC DEMO"
+    },
+    {
+      "x": 0.0672,
+      "y": 0.0653,
+      "w": 0.7462,
+      "h": 0.0294,
+      "text": "ACADEMIC TRANSCRIPT / STATEMENT OF MARKS"
+    },
+    {
+      "x": 0.1284,
+      "y": 0.1675,
+      "w": 0.7433,
+      "h": 0.0164,
+      "text": "DEMO ONLY - NOT AN OFFICIAL RECORD - NOT VALID FOR IDENTIFICATION OR BENEFITS"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.2352,
+      "w": 0.2497,
+      "h": 0.018,
+      "text": "Name: Ramesh Kumar Meena"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.285,
+      "w": 0.2959,
+      "h": 0.018,
+      "text": "Institution: Example State University"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.3349,
+      "w": 0.3175,
+      "h": 0.018,
+      "text": "Program: Master of Science in Physics"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.3848,
+      "w": 0.224,
+      "h": 0.018,
+      "text": "Academic Year: 2023-2024"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4347,
+      "w": 0.2179,
+      "h": 0.018,
+      "text": "Semester 4: 74.28 percent"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4846,
+      "w": 0.3165,
+      "h": 0.018,
+      "text": "Cumulative Grade Point Average: 7.43"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.5344,
+      "w": 0.3256,
+      "h": 0.018,
+      "text": "Record No: DEMO-TRANSCRIPT-0001"
+    },
+    {
+      "x": 0.0706,
+      "y": 0.8884,
+      "w": 0.8474,
+      "h": 0.0305,
+      "text": "All names, institutions, dates and reference numbers shown here are invented for software testing. This sample has no legal or administrative validity."
+    },
+    {
+      "x": 0.0706,
+      "y": 0.9566,
+      "w": 0.3832,
+      "h": 0.0131,
+      "text": "SYNTHETIC FIXTURE  |  TRIBALSCHOLAR AI LOCAL DEMO"
+    }
+  ],
+  "demo-income-certificate.pdf": [
+    {
+      "x": 0.0672,
+      "y": 0.0371,
+      "w": 0.3739,
+      "h": 0.018,
+      "text": "TRIBALSCHOLAR AI  /  SYNTHETIC DEMO"
+    },
+    {
+      "x": 0.0672,
+      "y": 0.0653,
+      "w": 0.4655,
+      "h": 0.0294,
+      "text": "ANNUAL INCOME CERTIFICATE"
+    },
+    {
+      "x": 0.1284,
+      "y": 0.1675,
+      "w": 0.7433,
+      "h": 0.0164,
+      "text": "DEMO ONLY - NOT AN OFFICIAL RECORD - NOT VALID FOR IDENTIFICATION OR BENEFITS"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.2993,
+      "w": 0.3905,
+      "h": 0.018,
+      "text": "Annual Family Income: INR 450,000 per annum"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.3492,
+      "w": 0.2168,
+      "h": 0.018,
+      "text": "Financial Year: 2025-2026"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.399,
+      "w": 0.3051,
+      "h": 0.018,
+      "text": "Certificate No: DEMO-INCOME-0001"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4489,
+      "w": 0.1912,
+      "h": 0.018,
+      "text": "Issue Date: 01/04/2026"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4988,
+      "w": 0.3514,
+      "h": 0.018,
+      "text": "Issuing Authority: Example Revenue Office"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.5487,
+      "w": 0.4531,
+      "h": 0.018,
+      "text": "Purpose: Synthetic scholarship workflow demonstration"
+    },
+    {
+      "x": 0.0706,
+      "y": 0.8884,
+      "w": 0.8474,
+      "h": 0.0305,
+      "text": "All names, institutions, dates and reference numbers shown here are invented for software testing. This sample has no legal or administrative validity."
+    },
+    {
+      "x": 0.0706,
+      "y": 0.9566,
+      "w": 0.3832,
+      "h": 0.0131,
+      "text": "SYNTHETIC FIXTURE  |  TRIBALSCHOLAR AI LOCAL DEMO"
+    }
+  ],
+  "demo-passport.pdf": [
+    {
+      "x": 0.0672,
+      "y": 0.0371,
+      "w": 0.3739,
+      "h": 0.018,
+      "text": "TRIBALSCHOLAR AI  /  SYNTHETIC DEMO"
+    },
+    {
+      "x": 0.0672,
+      "y": 0.0653,
+      "w": 0.4807,
+      "h": 0.0294,
+      "text": "SYNTHETIC PASSPORT SAMPLE"
+    },
+    {
+      "x": 0.1284,
+      "y": 0.1675,
+      "w": 0.7433,
+      "h": 0.0164,
+      "text": "DEMO ONLY - NOT AN OFFICIAL RECORD - NOT VALID FOR IDENTIFICATION OR BENEFITS"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.2352,
+      "w": 0.3555,
+      "h": 0.018,
+      "text": "Republic of India - Passport (DEMO ONLY)"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.285,
+      "w": 0.151,
+      "h": 0.018,
+      "text": "Surname: MEENA"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.3349,
+      "w": 0.264,
+      "h": 0.018,
+      "text": "Given Name: RAMESH KUMAR"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.3848,
+      "w": 0.1973,
+      "h": 0.018,
+      "text": "Passport No: D0000000"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4347,
+      "w": 0.2815,
+      "h": 0.018,
+      "text": "Nationality: INDIAN (SYNTHETIC)"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4846,
+      "w": 0.2055,
+      "h": 0.018,
+      "text": "Date of Birth: 15/05/1998"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.5344,
+      "w": 0.2311,
+      "h": 0.018,
+      "text": "Place of Birth: Demo District"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.5843,
+      "w": 0.3709,
+      "h": 0.018,
+      "text": "Sample only; this is not an identity document."
+    },
+    {
+      "x": 0.0706,
+      "y": 0.8884,
+      "w": 0.8474,
+      "h": 0.0305,
+      "text": "All names, institutions, dates and reference numbers shown here are invented for software testing. This sample has no legal or administrative validity."
+    },
+    {
+      "x": 0.0706,
+      "y": 0.9566,
+      "w": 0.3832,
+      "h": 0.0131,
+      "text": "SYNTHETIC FIXTURE  |  TRIBALSCHOLAR AI LOCAL DEMO"
+    }
+  ],
+  "demo-research-proposal.pdf": [
+    {
+      "x": 0.0672,
+      "y": 0.0371,
+      "w": 0.3739,
+      "h": 0.018,
+      "text": "TRIBALSCHOLAR AI  /  SYNTHETIC DEMO"
+    },
+    {
+      "x": 0.0672,
+      "y": 0.0653,
+      "w": 0.3479,
+      "h": 0.0294,
+      "text": "RESEARCH PROPOSAL"
+    },
+    {
+      "x": 0.1284,
+      "y": 0.1675,
+      "w": 0.7433,
+      "h": 0.0164,
+      "text": "DEMO ONLY - NOT AN OFFICIAL RECORD - NOT VALID FOR IDENTIFICATION OR BENEFITS"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.2352,
+      "w": 0.488,
+      "h": 0.018,
+      "text": "Title: Community-led watershed monitoring using open data"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.285,
+      "w": 0.2846,
+      "h": 0.018,
+      "text": "Candidate: Ramesh Kumar Meena"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.3349,
+      "w": 0.7716,
+      "h": 0.018,
+      "text": "Proposed Research: This synthetic proposal studies low-cost watershed observation methods."
+    },
+    {
+      "x": 0.0908,
+      "y": 0.399,
+      "w": 0.263,
+      "h": 0.018,
+      "text": "Supervisor: Dr. Example Mentor"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4489,
+      "w": 0.3843,
+      "h": 0.018,
+      "text": "Proposal Reference: DEMO-PROPOSAL-0001"
+    },
+    {
+      "x": 0.0706,
+      "y": 0.8884,
+      "w": 0.8474,
+      "h": 0.0305,
+      "text": "All names, institutions, dates and reference numbers shown here are invented for software testing. This sample has no legal or administrative validity."
+    },
+    {
+      "x": 0.0706,
+      "y": 0.9566,
+      "w": 0.3832,
+      "h": 0.0131,
+      "text": "SYNTHETIC FIXTURE  |  TRIBALSCHOLAR AI LOCAL DEMO"
+    }
+  ],
+  "demo-st-caste-certificate.pdf": [
+    {
+      "x": 0.0672,
+      "y": 0.0371,
+      "w": 0.3739,
+      "h": 0.018,
+      "text": "TRIBALSCHOLAR AI  /  SYNTHETIC DEMO"
+    },
+    {
+      "x": 0.0672,
+      "y": 0.0653,
+      "w": 0.4958,
+      "h": 0.0294,
+      "text": "SCHEDULED TRIBE CERTIFICATE"
+    },
+    {
+      "x": 0.1284,
+      "y": 0.1675,
+      "w": 0.7433,
+      "h": 0.0164,
+      "text": "DEMO ONLY - NOT AN OFFICIAL RECORD - NOT VALID FOR IDENTIFICATION OR BENEFITS"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.2993,
+      "w": 0.303,
+      "h": 0.018,
+      "text": "Community: Demo Tribal Community"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.3492,
+      "w": 0.261,
+      "h": 0.018,
+      "text": "Category: Scheduled Tribe (ST)"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.399,
+      "w": 0.2548,
+      "h": 0.018,
+      "text": "Certificate No: DEMO-ST-0001"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4489,
+      "w": 0.1912,
+      "h": 0.018,
+      "text": "Issue Date: 01/04/2026"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.4988,
+      "w": 0.3514,
+      "h": 0.018,
+      "text": "Issuing Authority: Example Revenue Office"
+    },
+    {
+      "x": 0.0908,
+      "y": 0.5487,
+      "w": 0.4531,
+      "h": 0.018,
+      "text": "Purpose: Synthetic scholarship workflow demonstration"
+    },
+    {
+      "x": 0.0706,
+      "y": 0.8884,
+      "w": 0.8474,
+      "h": 0.0305,
+      "text": "All names, institutions, dates and reference numbers shown here are invented for software testing. This sample has no legal or administrative validity."
+    },
+    {
+      "x": 0.0706,
+      "y": 0.9566,
+      "w": 0.3832,
+      "h": 0.0131,
+      "text": "SYNTHETIC FIXTURE  |  TRIBALSCHOLAR AI LOCAL DEMO"
+    }
+  ],
+  "synthetic-valid.pdf": []
+}

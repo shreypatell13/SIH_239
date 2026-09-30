@@ -55,6 +55,9 @@ export interface ConsistencyCheckItem {
   extractedConfidence: number;
   documentType: string;
   documentId: string;
+  evidenceFieldId?: string;
+  difference?: string;
+  status?: "CONSISTENT" | "REVIEW_REQUIRED";
   isConsistent: boolean;
   similarityScore?: number;
   mismatchExplanation?: string;

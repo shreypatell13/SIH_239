@@ -3,14 +3,18 @@ import { getServerAuthUser } from "@/server/auth/session";
 import { applicationService } from "@/server/services/application.service";
 import { apiError, apiSuccess } from "@/server/api-response";
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
     const user = await getServerAuthUser();
     if (!user) {
       return apiError("Unauthorized: Please log in as an applicant.", "UNAUTHORIZED", 401);
     }
 
-    const application = await applicationService.getApplicationDetail(params.id, user);
+    const { id } = await Promise.resolve(context.params);
+    const application = await applicationService.getApplicationDetail(id, user);
     return apiSuccess(application);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Failed to fetch application";
@@ -23,13 +27,17 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
     const user = await getServerAuthUser();
     if (!user) {
       return apiError("Unauthorized: Please log in as an applicant.", "UNAUTHORIZED", 401);
     }
 
+    const { id } = await Promise.resolve(context.params);
     const body = await req.json();
     const { formData } = body;
 
@@ -37,7 +45,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       return apiError("Valid formData object is required", "BAD_REQUEST", 400);
     }
 
-    const saved = await applicationService.saveDraft(params.id, formData, user);
+    const saved = await applicationService.saveDraft(id, formData, user);
     return apiSuccess(saved);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Failed to save application draft";

@@ -43,6 +43,25 @@ export function DocumentChecklist({
     fetchChecklist();
   }, [fetchChecklist]);
 
+  // Check if any uploaded document is currently PENDING or PROCESSING
+  const hasProcessingDocuments = checklist.some(
+    (item) =>
+      item.isUploaded &&
+      (item.uploadedDocument?.processingStatus === "PENDING" ||
+        item.uploadedDocument?.processingStatus === "PROCESSING")
+  );
+
+  // Automatically poll every 2.5 seconds while processing is in flight
+  useEffect(() => {
+    if (!hasProcessingDocuments) return;
+
+    const interval = setInterval(() => {
+      fetchChecklist();
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [hasProcessingDocuments, fetchChecklist]);
+
   const mandatoryItems = checklist.filter((item) => item.isRequired);
   const uploadedMandatory = mandatoryItems.filter((item) => item.isUploaded);
   const isAllMandatoryUploaded =

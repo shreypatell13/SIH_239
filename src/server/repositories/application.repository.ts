@@ -86,6 +86,7 @@ export class ApplicationRepository {
         caseDossier: {
           include: {
             documents: {
+              include: { extractedFields: true },
               orderBy: [{ documentType: "asc" }, { version: "desc" }],
             },
             deficiencies: true,
@@ -96,25 +97,64 @@ export class ApplicationRepository {
   }
 
   /**
-   * Checks if an application already exists for the applicant profile on a specific scheme version.
+   * Finds all applications (including withdrawn) for the applicant profile on a specific scheme version.
    */
-  async findByProfileAndVersion(applicantProfileId: string, schemeVersionId: string) {
-    return prisma.application.findUnique({
+  async findAllByProfileAndVersion(applicantProfileId: string, schemeVersionId: string) {
+    return prisma.application.findMany({
       where: {
-        applicantProfileId_schemeVersionId: {
-          applicantProfileId,
-          schemeVersionId,
-        },
+        applicantProfileId,
+        schemeVersionId,
       },
       include: {
         schemeVersion: { include: { scheme: true } },
         caseDossier: true,
       },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  /**
+   * Finds any active (non-withdrawn) application for the applicant profile on a specific scheme version.
+   */
+  async findActiveByProfileAndVersion(applicantProfileId: string, schemeVersionId: string) {
+    return prisma.application.findFirst({
+      where: {
+        applicantProfileId,
+        schemeVersionId,
+        status: { not: ApplicationStatus.WITHDRAWN },
+      },
+      include: {
+        schemeVersion: { include: { scheme: true } },
+        caseDossier: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  /**
+   * Checks if an application exists for the applicant profile on a specific scheme version.
+   * Prefers active (non-withdrawn) application, falling back to the latest application.
+   */
+  async findByProfileAndVersion(applicantProfileId: string, schemeVersionId: string) {
+    const active = await this.findActiveByProfileAndVersion(applicantProfileId, schemeVersionId);
+    if (active) return active;
+
+    return prisma.application.findFirst({
+      where: {
+        applicantProfileId,
+        schemeVersionId,
+      },
+      include: {
+        schemeVersion: { include: { scheme: true } },
+        caseDossier: true,
+      },
+      orderBy: { createdAt: "desc" },
     });
   }
 
   /**
    * Creates an Application Draft and its Early CaseDossier atomically in a single transaction.
+   * Ensures no active/submitted application exists for the same profile and scheme version.
    */
   async createDraft(params: {
     schemeVersionId: string;
@@ -124,6 +164,21 @@ export class ApplicationRepository {
     initialFormData?: Record<string, unknown>;
   }) {
     return prisma.$transaction(async (tx) => {
+      // Validate within transaction that no active (non-withdrawn) application exists
+      const activeExisting = await tx.application.findFirst({
+        where: {
+          applicantProfileId: params.applicantProfileId,
+          schemeVersionId: params.schemeVersionId,
+          status: { not: ApplicationStatus.WITHDRAWN },
+        },
+      });
+
+      if (activeExisting) {
+        throw new Error(
+          "An active or submitted application already exists for this scheme. Duplicate applications are not permitted."
+        );
+      }
+
       const applicationNumber = await this.generateApplicationNumber(params.schemeCode);
       const caseNumber = await this.generateCaseNumber(params.schemeCode);
 

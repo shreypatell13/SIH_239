@@ -4,14 +4,18 @@ import { applicationService } from "@/server/services/application.service";
 import { apiError, apiSuccess } from "@/server/api-response";
 import { DocumentType } from "@prisma/client";
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
     const user = await getServerAuthUser();
     if (!user) {
       return apiError("Unauthorized: Please log in as an applicant.", "UNAUTHORIZED", 401);
     }
 
-    const checklist = await applicationService.getChecklist(params.id, user);
+    const { id } = await Promise.resolve(context.params);
+    const checklist = await applicationService.getChecklist(id, user);
     return apiSuccess(checklist);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Failed to fetch document checklist";
@@ -24,12 +28,17 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
     const user = await getServerAuthUser();
     if (!user) {
       return apiError("Unauthorized: Please log in as an applicant.", "UNAUTHORIZED", 401);
     }
+
+    const { id } = await Promise.resolve(context.params);
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -52,7 +61,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const buffer = Buffer.from(arrayBuffer);
 
     const uploaded = await applicationService.uploadDocument(
-      params.id,
+      id,
       documentType,
       {
         fileName: file.name,

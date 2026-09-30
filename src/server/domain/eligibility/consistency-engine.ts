@@ -122,13 +122,19 @@ export function stringSimilarity(str1: string, str2: string): number {
 }
 
 /**
- * Parses numeric currency/amount values safely.
+ * Parses numeric currency/amount or percentage values safely.
  */
-function parseAmount(val: string | number | null | undefined): number | null {
+export function parseNumericValue(val: string | number | null | undefined): number | null {
   if (val === null || val === undefined) return null;
-  if (typeof val === "number") return val;
-  const cleaned = String(val).replace(/[^\d.]/g, "");
-  const num = parseFloat(cleaned);
+  if (typeof val === "number") return isNaN(val) ? null : val;
+  let str = String(val).trim();
+  // Strip common currency prefixes and suffixes
+  str = str.replace(/^(rs\.?|inr|rupees|₹)\s*/i, "");
+  str = str.replace(/\/-\s*$/g, "");
+  str = str.replace(/,/g, "");
+  // Now keep only digits and single decimal point
+  str = str.replace(/[^0-9.]/g, "");
+  const num = parseFloat(str);
   return isNaN(num) ? null : num;
 }
 
@@ -141,6 +147,9 @@ export function runConsistencyChecks(params: {
     category?: string | null;
     annualFamilyIncome?: number | null;
     user?: { name?: string | null };
+    academicQualification?: string | null;
+    institutionName?: string | null;
+    percentageObtained?: number | null;
   };
   extractedEvidences: ExtractedFieldEvidence[];
 }): ConsistencyCheckItem[] {
@@ -151,11 +160,19 @@ export function runConsistencyChecks(params: {
     (formData.fullName as string) || (applicantProfile.user?.name as string) || "";
   const declaredIncome = formData.annualFamilyIncome ?? applicantProfile.annualFamilyIncome;
   const declaredCategory = (formData.casteCategory as string) || applicantProfile.category || "";
+  const declaredPercentage =
+    formData.academicPercentage ?? formData.percentageMarks ?? applicantProfile.percentageObtained;
+  const declaredUniversity =
+    (formData.universityName as string) || applicantProfile.institutionName || "";
   const declaredPassport = formData.passportNumber as string;
 
   // 1. Cross-document Name Consistency Checks
   const nameEvidences = extractedEvidences.filter(
-    (e) => e.fieldKey.toLowerCase() === "applicantname" || e.fieldKey.toLowerCase() === "name"
+    (e) =>
+      e.fieldKey.toLowerCase() === "applicantname" ||
+      e.fieldKey.toLowerCase() === "fullname" ||
+      e.fieldKey.toLowerCase() === "candidatename" ||
+      e.fieldKey.toLowerCase() === "name"
   );
 
   for (const evidence of nameEvidences) {
@@ -171,11 +188,13 @@ export function runConsistencyChecks(params: {
       extractedConfidence: evidence.confidenceScore,
       documentType: evidence.documentType,
       documentId: evidence.documentId,
+      evidenceFieldId: evidence.id,
+      status: isConsistent ? "CONSISTENT" : "REVIEW_REQUIRED",
       isConsistent,
       similarityScore: Math.round(similarity * 100) / 100,
       mismatchExplanation: isConsistent
         ? undefined
-        : `Extracted name '${rawExtracted}' from ${evidence.documentType} differs from declared name '${declaredName}' (similarity: ${Math.round(similarity * 100)}%).`,
+        : `Extracted name '${rawExtracted}' from ${evidence.documentType} differs from application form name '${declaredName}' (similarity: ${Math.round(similarity * 100)}%).`,
     });
   }
 
@@ -184,12 +203,13 @@ export function runConsistencyChecks(params: {
     (e) =>
       e.fieldKey.toLowerCase() === "annualfamilyincome" ||
       e.fieldKey.toLowerCase() === "annualincome" ||
-      e.fieldKey.toLowerCase() === "income"
+      e.fieldKey.toLowerCase() === "income" ||
+      e.fieldKey.toLowerCase() === "grossincome"
   );
 
   for (const evidence of incomeEvidences) {
-    const formNum = parseAmount(declaredIncome as string | number);
-    const extNum = parseAmount(evidence.normalizedValue || evidence.rawValue);
+    const formNum = parseNumericValue(declaredIncome as string | number);
+    const extNum = parseNumericValue(evidence.normalizedValue || evidence.rawValue);
 
     if (formNum !== null && extNum !== null) {
       // Allow minor rounding tolerance (within 1%)
@@ -204,10 +224,13 @@ export function runConsistencyChecks(params: {
         extractedConfidence: evidence.confidenceScore,
         documentType: evidence.documentType,
         documentId: evidence.documentId,
+        evidenceFieldId: evidence.id,
+        difference: diff > 0 ? `₹${diff.toLocaleString("en-IN")}` : undefined,
+        status: isConsistent ? "CONSISTENT" : "REVIEW_REQUIRED",
         isConsistent,
         mismatchExplanation: isConsistent
           ? undefined
-          : `Declared income of ₹${formNum.toLocaleString("en-IN")} does not match extracted income ₹${extNum.toLocaleString("en-IN")} from ${evidence.documentType}.`,
+          : `Declared income of ₹${formNum.toLocaleString("en-IN")} does not match extracted income ₹${extNum.toLocaleString("en-IN")} from ${evidence.documentType} (Difference: ₹${diff.toLocaleString("en-IN")}).`,
       });
     }
   }
@@ -217,7 +240,8 @@ export function runConsistencyChecks(params: {
     (e) =>
       e.fieldKey.toLowerCase() === "castecategory" ||
       e.fieldKey.toLowerCase() === "tribename" ||
-      e.fieldKey.toLowerCase() === "category"
+      e.fieldKey.toLowerCase() === "category" ||
+      e.fieldKey.toLowerCase() === "socialcategory"
   );
 
   for (const evidence of casteEvidences) {
@@ -241,14 +265,55 @@ export function runConsistencyChecks(params: {
       extractedConfidence: evidence.confidenceScore,
       documentType: evidence.documentType,
       documentId: evidence.documentId,
+      evidenceFieldId: evidence.id,
+      status: isConsistent ? "CONSISTENT" : "REVIEW_REQUIRED",
       isConsistent,
       mismatchExplanation: isConsistent
         ? undefined
-        : `Declared category '${declaredCategory}' could not be confirmed against extracted certificate record '${evidence.rawValue}'.`,
+        : `Declared category '${declaredCategory}' could not be confirmed against extracted certificate category '${evidence.rawValue}'.`,
     });
   }
 
-  // 4. Passport Number Consistency Check
+  // 4. Academic Marks / Percentage Consistency Check
+  if (declaredPercentage !== undefined && declaredPercentage !== null) {
+    const marksEvidences = extractedEvidences.filter(
+      (e) =>
+        e.fieldKey.toLowerCase() === "academicpercentage" ||
+        e.fieldKey.toLowerCase() === "percentagemarks" ||
+        e.fieldKey.toLowerCase() === "percentage" ||
+        e.fieldKey.toLowerCase() === "cgpa" ||
+        e.fieldKey.toLowerCase() === "markspercentage"
+    );
+
+    for (const evidence of marksEvidences) {
+      const formNum = parseNumericValue(declaredPercentage as string | number);
+      const extNum = parseNumericValue(evidence.normalizedValue || evidence.rawValue);
+
+      if (formNum !== null && extNum !== null) {
+        const diff = Math.abs(formNum - extNum);
+        const isConsistent = diff <= 1.0;
+
+        results.push({
+          fieldKey: "academicPercentage",
+          fieldLabel: "Academic Marks / Percentage",
+          formValue: `${formNum}%`,
+          extractedValue: `${extNum}%`,
+          extractedConfidence: evidence.confidenceScore,
+          documentType: evidence.documentType,
+          documentId: evidence.documentId,
+          evidenceFieldId: evidence.id,
+          difference: diff > 0 ? `${diff.toFixed(1)}%` : undefined,
+          status: isConsistent ? "CONSISTENT" : "REVIEW_REQUIRED",
+          isConsistent,
+          mismatchExplanation: isConsistent
+            ? undefined
+            : `Application form marks (${formNum}%) differ from transcript marks (${extNum}%).`,
+        });
+      }
+    }
+  }
+
+  // 5. Passport Number Consistency Check
   if (declaredPassport) {
     const passportEvidences = extractedEvidences.filter(
       (e) => e.fieldKey.toLowerCase() === "passportnumber"
@@ -267,6 +332,8 @@ export function runConsistencyChecks(params: {
         extractedConfidence: evidence.confidenceScore,
         documentType: evidence.documentType,
         documentId: evidence.documentId,
+        evidenceFieldId: evidence.id,
+        status: isConsistent ? "CONSISTENT" : "REVIEW_REQUIRED",
         isConsistent,
         mismatchExplanation: isConsistent
           ? undefined

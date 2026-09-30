@@ -13,6 +13,8 @@ import { assertCanAccessCase, canListCaseQueue } from "../auth/case-access";
 import { caseRepository } from "../repositories/case.repository";
 import { deficiencyRepository } from "../repositories/deficiency.repository";
 import { auditRepository } from "../repositories/audit.repository";
+import { documentProcessingJobRepository } from "../repositories/document-processing-job.repository";
+import { documentProcessingService } from "./document-processing.service";
 import { eligibilityEngineService } from "./eligibility-engine.service";
 import { toOfficerDeficiencyDTO } from "../domain/deficiency/explanation";
 import {
@@ -143,6 +145,19 @@ export class OfficerService {
     const user = profile.user;
     const version = app.schemeVersion;
     const scheme = version.scheme;
+
+    // Ensure any PENDING document jobs are running in background
+    for (const doc of c.documents || []) {
+      if (doc.processingStatus === ProcessingStatus.PENDING) {
+        documentProcessingJobRepository.findByDocumentId(doc.id).then((job) => {
+          if (job && job.startedAt === null) {
+            documentProcessingService.processJob(job.id).catch((err) => {
+              console.error(`[OfficerService] Background trigger for job ${job.id} failed:`, err);
+            });
+          }
+        }).catch(() => {});
+      }
+    }
 
     // 1. Format Documents with Extracted Fields & Bounding Boxes
     const documents: OfficerDocumentItemDTO[] = (c.documents || []).map((doc) => {

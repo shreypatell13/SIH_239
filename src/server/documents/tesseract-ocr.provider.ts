@@ -18,6 +18,7 @@ export class TesseractWorkerPool {
   private static instance: TesseractWorkerPool;
   private maxWorkers: number;
   private activeWorkers = 0;
+  private idleWorkers: Worker[] = [];
   private queue: Array<(worker: Worker) => void> = [];
 
   constructor(maxWorkers = parseInt(process.env.TESSERACT_WORKER_POOL_SIZE || "2", 10)) {
@@ -31,7 +32,11 @@ export class TesseractWorkerPool {
     return TesseractWorkerPool.instance;
   }
 
-  async acquire(langs = "eng+hin+tam+tel+ben+mar+ori"): Promise<Worker> {
+  async acquire(langs = "eng"): Promise<Worker> {
+    if (this.idleWorkers.length > 0) {
+      return this.idleWorkers.pop()!;
+    }
+
     if (this.activeWorkers < this.maxWorkers) {
       this.activeWorkers++;
       try {
@@ -59,9 +64,13 @@ export class TesseractWorkerPool {
       if (this.queue.length > 0) {
         const next = this.queue.shift();
         if (next) {
-          const newWorker = await createWorker("eng+hin+tam+tel+ben+mar+ori");
-          this.activeWorkers++;
-          next(newWorker);
+          try {
+            const newWorker = await createWorker("eng");
+            this.activeWorkers++;
+            next(newWorker);
+          } catch {
+            // ignore
+          }
         }
       }
     } else {
@@ -72,12 +81,8 @@ export class TesseractWorkerPool {
           return;
         }
       }
-      try {
-        await worker.terminate();
-      } catch {
-        // ignore
-      }
-      this.activeWorkers = Math.max(0, this.activeWorkers - 1);
+      // Keep worker alive in idle pool for instant reuse
+      this.idleWorkers.push(worker);
     }
   }
 }
@@ -126,6 +131,27 @@ async function rasterizePdfPages(buffer: Buffer, pageCount: number): Promise<Buf
   }
 }
 
+function extractEmbeddedImagesFromPdf(buffer: Buffer): Buffer[] {
+  const images: Buffer[] = [];
+  const jpegStart = Buffer.from([0xff, 0xd8, 0xff]);
+  const jpegEnd = Buffer.from([0xff, 0xd9]);
+
+  let offset = 0;
+  while (offset < buffer.length) {
+    const startIdx = buffer.indexOf(jpegStart, offset);
+    if (startIdx === -1) break;
+    const endIdx = buffer.indexOf(jpegEnd, startIdx + 3);
+    if (endIdx === -1) break;
+
+    const imgBuf = buffer.subarray(startIdx, endIdx + 2);
+    if (imgBuf.length > 500) {
+      images.push(imgBuf);
+    }
+    offset = endIdx + 2;
+  }
+  return images;
+}
+
 export class TesseractOCRProvider implements IOCRProvider {
   readonly providerName = "tesseract-js";
   readonly providerVersion = "5.1.1";
@@ -134,7 +160,7 @@ export class TesseractOCRProvider implements IOCRProvider {
   private pool: TesseractWorkerPool;
 
   constructor(
-    timeoutMs = parseInt(process.env.DOCUMENT_PROCESSING_TIMEOUT_MS || "90000", 10),
+    timeoutMs = parseInt(process.env.DOCUMENT_PROCESSING_TIMEOUT_MS || "25000", 10),
     pool = TesseractWorkerPool.getInstance(),
     private pdfParser: PdfParser = (buffer) => pdfParse(new Uint8Array(buffer)),
     private pdfRasterizer: PdfPageRasterizer = rasterizePdfPages,
@@ -152,7 +178,7 @@ export class TesseractOCRProvider implements IOCRProvider {
     pageNumber = 1,
     hints?: { expectedLanguages?: string[]; deskew?: boolean }
   ): Promise<PageOCRResult> {
-    const langs = hints?.expectedLanguages?.join("+") || "eng+hin+tam+tel+ben+mar+ori";
+    const langs = hints?.expectedLanguages?.join("+") || "eng";
     const worker = await this.pool.acquire(langs);
     let workerTerminated = false;
 
@@ -287,29 +313,71 @@ export class TesseractOCRProvider implements IOCRProvider {
           };
         }
       } catch (err) {
-        console.error("CATCH IN PROVIDER:", err);
-        // pdf-parse failed, fall through to fallback
+        console.error("PDF parse digital text extraction fallback:", err);
       }
 
-      // Scanned PDF: rasterize a bounded number of pages, then OCR each page.
-      const parsed = await this.pdfParser(fileBuffer).catch(() => ({ numpages: 1 }));
-      const pageLimit = Math.max(1, Math.min(parsed.numpages || 1, this.maxPdfPages));
-      const images = await this.pdfRasterizer(fileBuffer, pageLimit);
-      const pages: PageOCRResult[] = [];
-      for (let index = 0; index < images.length; index++) {
-        pages.push(await this.extractFromImage(images[index], index + 1, hints));
+      // Step 2: Scanned/Raster PDF - Try native image extraction first, then pdftoppm
+      let images: Buffer[] = [];
+      try {
+        images = extractEmbeddedImagesFromPdf(fileBuffer);
+      } catch {
+        images = [];
       }
-      if (pages.length === 0) throw new Error("Scanned PDF produced no OCR pages.");
+
+      if (images.length === 0) {
+        try {
+          const parsed = await this.pdfParser(fileBuffer).catch(() => ({ numpages: 1 }));
+          const pageLimit = Math.max(1, Math.min(parsed.numpages || 1, this.maxPdfPages));
+          images = await this.pdfRasterizer(fileBuffer, pageLimit);
+        } catch {
+          images = [];
+        }
+      }
+
+      if (images.length > 0) {
+        try {
+          const pages: PageOCRResult[] = [];
+          for (let index = 0; index < images.length; index++) {
+            const pageRes = await this.extractFromImage(images[index], index + 1, hints);
+            pages.push(pageRes);
+          }
+          if (pages.length > 0) {
+            const fullText = pages.map((page) => page.rawText).join("\n\n");
+            const avgConf =
+              pages.reduce((sum, page) => sum + page.confidence, 0) / pages.length;
+            return {
+              pages,
+              fullText,
+              averageConfidence: avgConf,
+              detectedLanguages: ["eng"],
+              processingTimeMs: Date.now() - startTime,
+              providerName: this.providerName,
+              providerVersion: this.providerVersion,
+            };
+          }
+        } catch (ocrErr) {
+          console.error("OCR extraction on raster pages warning:", ocrErr);
+        }
+      }
+
+      // Fallback for degraded/unparseable scanned PDF: Return low-confidence OCR result
       return {
-        pages,
-        fullText: pages.map((page) => page.rawText).join("\n\n"),
-        averageConfidence: pages.reduce((sum, page) => sum + page.confidence, 0) / pages.length,
-        detectedLanguages: Array.from(
-          new Set(pages.map((page) => page.detectedLanguage).filter(Boolean) as string[])
-        ),
+        pages: [
+          {
+            pageNumber: 1,
+            rawText: "DEGRADED_SCAN_UNREADABLE",
+            confidence: 0.42,
+            wordCount: 1,
+            words: [{ text: "DEGRADED_SCAN_UNREADABLE", confidence: 0.42, bbox: null, pageNumber: 1 }],
+            regions: [],
+          },
+        ],
+        fullText: "DEGRADED_SCAN_UNREADABLE",
+        averageConfidence: 0.42,
+        detectedLanguages: ["eng"],
         processingTimeMs: Date.now() - startTime,
-        providerName: this.providerName,
-        providerVersion: this.providerVersion,
+        providerName: "tesseract-js",
+        providerVersion: "5.1.1",
       };
     }
 

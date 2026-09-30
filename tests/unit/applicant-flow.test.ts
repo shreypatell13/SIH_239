@@ -403,4 +403,146 @@ describe("Phase 2E — Applicant Dynamic Flow & Engine Tests", () => {
       }
     });
   });
+
+  // ==========================================
+  // 7. DUPLICATE CHECK & RE-APPLICATION AFTER WITHDRAWAL
+  // ==========================================
+  describe("7. Duplicate Check & Re-Application After Withdrawal", () => {
+    const testReapplyUser: AuthenticatedUser = {
+      id: "usr_test_reapply_001",
+      email: "test.reapply@example.tribal.gov.in",
+      name: "Reapply Test Candidate",
+      role: "APPLICANT",
+      isActive: true,
+    };
+
+    beforeEach(async () => {
+      // Ensure test user exists
+      await prisma.user.upsert({
+        where: { id: testReapplyUser.id },
+        update: {},
+        create: {
+          id: testReapplyUser.id,
+          email: testReapplyUser.email,
+          name: testReapplyUser.name,
+          role: "APPLICANT",
+          passwordHash: "$2a$12$e/sampletesthashforlocaltestsreapply1234567890",
+        },
+      });
+    });
+
+    it("prevents creating duplicate application when an active SUBMITTED application exists", async () => {
+      // NOS is seeded in SUBMITTED status for applicantUser
+      await expect(applicationService.createDraft("NOS", applicantUser)).rejects.toThrow(
+        /already exists/i
+      );
+    });
+
+    it("returns existing active draft (resumes editing) without creating duplicate", async () => {
+      // NFST is seeded in DRAFT status for applicantUser
+      const draft = await applicationService.createDraft("NFST", applicantUser);
+      expect(draft.id).toBe("app_demo_nfst_draft_001");
+      expect(draft.status).toBe(ApplicationStatus.DRAFT);
+    });
+
+    it("allows a new application ONLY when all previous applications for that applicant + scheme version are WITHDRAWN, preserving history", async () => {
+      // 1. Candidate creates first application draft (Attempt 1)
+      const attempt1 = await applicationService.createDraft("NFST", testReapplyUser);
+      expect(attempt1.id).toBeDefined();
+      expect(attempt1.status).toBe(ApplicationStatus.DRAFT);
+
+      // Attempting to create again while attempt1 is active DRAFT returns existing draft (no duplicate)
+      const attempt1DuplicateCheck = await applicationService.createDraft("NFST", testReapplyUser);
+      expect(attempt1DuplicateCheck.id).toBe(attempt1.id);
+
+      // 2. Candidate withdraws Attempt 1
+      const withdrawn1 = await applicationService.withdrawApplication(
+        attempt1.id,
+        testReapplyUser,
+        "Candidate withdrew to revise academic details"
+      );
+      expect(withdrawn1.stage).toBe(CaseStage.WITHDRAWN);
+
+      // Verify Attempt 1 in DB is WITHDRAWN
+      const attempt1FromDb = await prisma.application.findUnique({
+        where: { id: attempt1.id },
+        include: { caseDossier: true },
+      });
+      expect(attempt1FromDb?.status).toBe(ApplicationStatus.WITHDRAWN);
+      expect(attempt1FromDb?.caseDossier?.currentStage).toBe(CaseStage.WITHDRAWN);
+
+      // 3. Candidate creates a new application attempt (Attempt 2)
+      // Since all previous applications for this applicant + scheme version are WITHDRAWN, creation must succeed
+      const attempt2 = await applicationService.createDraft("NFST", testReapplyUser);
+      expect(attempt2.id).toBeDefined();
+      expect(attempt2.id).not.toBe(attempt1.id); // Must be a brand new application ID
+      expect(attempt2.applicationNumber).not.toBe(attempt1.applicationNumber);
+      expect(attempt2.caseDossier?.id).not.toBe(attempt1.caseDossier?.id); // Must be a brand new case
+      expect(attempt2.caseDossier?.caseNumber).not.toBe(attempt1.caseDossier?.caseNumber);
+      expect(attempt2.status).toBe(ApplicationStatus.DRAFT);
+      expect(attempt2.caseDossier?.currentStage).toBe(CaseStage.DRAFT);
+
+      // 4. Verify Attempt 1 was NOT deleted or overwritten; history & audit trail preserved
+      const attempt1StillPreserved = await prisma.application.findUnique({
+        where: { id: attempt1.id },
+        include: {
+          caseDossier: {
+            include: { auditLogs: true },
+          },
+        },
+      });
+      expect(attempt1StillPreserved).not.toBeNull();
+      expect(attempt1StillPreserved?.status).toBe(ApplicationStatus.WITHDRAWN);
+      expect(attempt1StillPreserved?.caseDossier?.currentStage).toBe(CaseStage.WITHDRAWN);
+      expect(attempt1StillPreserved?.caseDossier?.auditLogs.length).toBeGreaterThan(0);
+
+      // 5. Active Attempt 2 must now prevent duplicate applications
+      // While Attempt 2 is in DRAFT, calling createDraft returns Attempt 2 (resuming it)
+      const attempt2Resume = await applicationService.createDraft("NFST", testReapplyUser);
+      expect(attempt2Resume.id).toBe(attempt2.id);
+
+      // 6. Candidate withdraws Attempt 2 as well
+      await applicationService.withdrawApplication(
+        attempt2.id,
+        testReapplyUser,
+        "Second withdrawal test"
+      );
+
+      // 7. Both Attempt 1 and Attempt 2 are now WITHDRAWN.
+      // Attempt 3 must be allowed since ALL previous applications are WITHDRAWN
+      const attempt3 = await applicationService.createDraft("NFST", testReapplyUser);
+      expect(attempt3.id).toBeDefined();
+      expect(attempt3.id).not.toBe(attempt1.id);
+      expect(attempt3.id).not.toBe(attempt2.id);
+      expect(attempt3.status).toBe(ApplicationStatus.DRAFT);
+
+      // 8. Verify applicant list shows all attempts with their respective statuses preserved
+      const allUserApps = await applicationRepository.listByUserId(testReapplyUser.id);
+      expect(allUserApps.length).toBe(3);
+      const statuses = allUserApps.map((a) => a.status);
+      expect(statuses.filter((s) => s === ApplicationStatus.WITHDRAWN).length).toBe(2);
+      expect(statuses.filter((s) => s === ApplicationStatus.DRAFT).length).toBe(1);
+
+      // Clean up test data
+      await prisma.auditLog.deleteMany({
+        where: {
+          caseDossierId: {
+            in: [attempt1.caseDossier!.id, attempt2.caseDossier!.id, attempt3.caseDossier!.id],
+          },
+        },
+      });
+      await prisma.caseDossier.deleteMany({
+        where: { applicationId: { in: [attempt1.id, attempt2.id, attempt3.id] } },
+      });
+      await prisma.application.deleteMany({
+        where: { id: { in: [attempt1.id, attempt2.id, attempt3.id] } },
+      });
+      await prisma.applicantProfile.deleteMany({
+        where: { userId: testReapplyUser.id },
+      });
+      await prisma.user.delete({
+        where: { id: testReapplyUser.id },
+      });
+    });
+  });
 });

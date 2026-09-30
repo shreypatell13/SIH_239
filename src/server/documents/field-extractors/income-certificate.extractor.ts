@@ -35,6 +35,7 @@ export class IncomeCertificateExtractor implements IFieldExtractor {
         normalizedValue: raw.toUpperCase(),
         confidenceScore: 0.88,
         pageNumber: 1,
+        boundingBox: { x: 0.0908, y: 0.230, width: 0.35, height: 0.038 },
         sourceSnippet: nameMatch[0].substring(0, 150),
         extractorProvider: this.provider,
         extractorVersion: this.version,
@@ -59,6 +60,7 @@ export class IncomeCertificateExtractor implements IFieldExtractor {
           normalizedValue: normalized,
           confidenceScore: 0.91,
           pageNumber: 1,
+          boundingBox: { x: 0.0908, y: 0.295, width: 0.41, height: 0.038 },
           sourceSnippet: incomeMatch[0],
           extractorProvider: this.provider,
           extractorVersion: this.version,
@@ -80,6 +82,7 @@ export class IncomeCertificateExtractor implements IFieldExtractor {
         normalizedValue: raw.replace(/\s+/g, ""),
         confidenceScore: 0.86,
         pageNumber: 1,
+        boundingBox: { x: 0.0908, y: 0.345, width: 0.24, height: 0.038 },
         sourceSnippet: fyMatch[0],
         extractorProvider: this.provider,
         extractorVersion: this.version,
@@ -87,7 +90,28 @@ export class IncomeCertificateExtractor implements IFieldExtractor {
       });
     }
 
-    // 4. Issuing Authority
+    // 4. Certificate Number
+    const certNoMatch = text.match(
+      /(?:certificate no|cert no|income cert no|application no|ref no|case no)\s*[:\-.]?\s*([A-Za-z0-9\/\-_]{5,30})/i
+    );
+    if (certNoMatch && certNoMatch[1]) {
+      const raw = certNoMatch[1].trim();
+      fields.push({
+        fieldKey: "certificateNumber",
+        fieldLabel: "Certificate Number",
+        rawValue: raw,
+        normalizedValue: raw.toUpperCase(),
+        confidenceScore: 0.95,
+        pageNumber: 1,
+        boundingBox: { x: 0.0908, y: 0.395, width: 0.32, height: 0.038 },
+        sourceSnippet: certNoMatch[0],
+        extractorProvider: this.provider,
+        extractorVersion: this.version,
+        extractionMethod: "REGEX",
+      });
+    }
+
+    // 5. Issuing Authority
     const authorityMatch = text.match(
       /(tehsildar|tahsildar|revenue officer|district magistrate|sub-divisional officer|sdo|revenue inspector)/i
     );
@@ -100,6 +124,7 @@ export class IncomeCertificateExtractor implements IFieldExtractor {
         normalizedValue: raw.toUpperCase(),
         confidenceScore: 0.88,
         pageNumber: 1,
+        boundingBox: { x: 0.0908, y: 0.495, width: 0.37, height: 0.038 },
         sourceSnippet: authorityMatch[0],
         extractorProvider: this.provider,
         extractorVersion: this.version,
@@ -107,7 +132,7 @@ export class IncomeCertificateExtractor implements IFieldExtractor {
       });
     }
 
-    // 5. Issue Date
+    // 6. Issue Date
     const dateMatch = text.match(
       /(?:date of issue|issued on|dated\s*[:\-]?|date\s*[:\-]?)\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i
     );
@@ -120,6 +145,7 @@ export class IncomeCertificateExtractor implements IFieldExtractor {
         normalizedValue: raw,
         confidenceScore: 0.87,
         pageNumber: 1,
+        boundingBox: { x: 0.0908, y: 0.445, width: 0.21, height: 0.038 },
         sourceSnippet: dateMatch[0],
         extractorProvider: this.provider,
         extractorVersion: this.version,

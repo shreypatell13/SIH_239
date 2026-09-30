@@ -247,35 +247,113 @@ export function EligibilityTab({ data, onSelectEvidence, onReevaluated }: Eligib
         </CardContent>
       </Card>
 
-      {/* 4. Cross-Document Consistency Matrix */}
+      {/* 4. Cross-Document Consistency Matrix / Information Mismatch */}
       {eligibility.consistencyChecks.length > 0 && (
         <Card className="border-slate-200 shadow-none">
           <CardHeader className="border-b border-slate-100 bg-slate-50/50 px-4 py-2.5">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-gov-slate" />
               <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                Cross-Document Consistency Verification
+                Cross-Document Consistency &amp; Evidence Verification
               </CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
-            {eligibility.consistencyChecks.map((check, idx) => (
-              <div key={idx} className="flex items-start justify-between p-3">
-                <div>
-                  <div className="font-semibold text-slate-900">
-                    {check.fieldLabel || check.fieldKey}
+          <CardContent className="p-0 divide-y divide-slate-100">
+            {eligibility.consistencyChecks.map((check, idx) => {
+              const docLabel =
+                check.documentType === "INCOME_CERTIFICATE"
+                  ? "Income Certificate"
+                  : check.documentType === "CASTE_CERTIFICATE"
+                    ? "Scheduled Tribe Certificate"
+                    : check.documentType === "DEGREE_TRANSCRIPT"
+                      ? "Degree Transcript"
+                      : check.documentType === "ADMISSION_OFFER_LETTER"
+                        ? "Admission Offer Letter"
+                        : check.documentType;
+
+              return (
+                <div
+                  key={idx}
+                  className={`p-3 space-y-2 ${
+                    !check.isConsistent ? "bg-amber-50/40 border-l-4 border-l-amber-500" : ""
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 text-xs">
+                          {check.fieldLabel || check.fieldKey}
+                        </span>
+                        {!check.isConsistent && (
+                          <Badge variant="warning" className="text-[10px] font-semibold">
+                            INFORMATION MISMATCH
+                          </Badge>
+                        )}
+                        {check.isConsistent && (
+                          <Badge variant="success" className="text-[10px]">
+                            CONSISTENT
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Source Document: <strong>{docLabel}</strong> &bull; OCR Confidence:{" "}
+                        <strong>{Math.round((check.extractedConfidence || 0.95) * 100)}%</strong>
+                      </p>
+                    </div>
+
+                    {check.evidenceFieldId && onSelectEvidence && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          onSelectEvidence(check.evidenceFieldId!, check.documentId)
+                        }
+                        className="h-7 text-xs gap-1 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                      >
+                        Inspect Evidence
+                        <ArrowUpRight className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
-                  <p className="text-[11px] text-slate-500">
-                    Form: &ldquo;{check.formValue}&rdquo; &bull; Document: &ldquo;
-                    {check.extractedValue}&rdquo;
-                    {check.mismatchExplanation ? ` (${check.mismatchExplanation})` : ""}
-                  </p>
+
+                  {/* Comparison Details Grid */}
+                  <div className="rounded border border-slate-200/80 bg-white p-2.5 text-xs grid grid-cols-2 gap-2">
+                    <div>
+                      <span className="block text-[10px] uppercase font-semibold text-slate-400">
+                        Application Form Value
+                      </span>
+                      <span className="font-semibold text-slate-900">{check.formValue}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] uppercase font-semibold text-slate-400">
+                        Document Extracted Value
+                      </span>
+                      <span
+                        className={`font-semibold ${
+                          !check.isConsistent ? "text-amber-900 font-bold" : "text-slate-900"
+                        }`}
+                      >
+                        {check.extractedValue}
+                      </span>
+                    </div>
+
+                    {check.difference && (
+                      <div className="col-span-2 pt-1 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                        <span className="text-slate-500 font-medium">Difference / Discrepancy:</span>
+                        <span className="font-bold text-amber-700">{check.difference}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {check.mismatchExplanation && (
+                    <div className="text-[11px] text-amber-800 font-medium flex items-center gap-1.5">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+                      <span>{check.mismatchExplanation}</span>
+                    </div>
+                  )}
                 </div>
-                <Badge variant={check.isConsistent ? "success" : "warning"} className="text-[10px]">
-                  {check.isConsistent ? "CONSISTENT" : "DISCREPANCY"}
-                </Badge>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       )}

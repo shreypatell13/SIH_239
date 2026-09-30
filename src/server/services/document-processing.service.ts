@@ -11,6 +11,7 @@ import { MagicByteValidator } from "../documents/security/magic-byte.validator";
 import { DocumentClassifier } from "../documents/classification/document.classifier";
 import { FieldExtractorRegistry } from "../documents/field-extractors";
 import { ConfidenceModel } from "../documents/confidence.model";
+import { getDemoOcrDelayMs } from "../documents/demo-delay.config";
 import { AuthenticatedUser, assertPermission } from "../auth/roles";
 import { assertCanAccessCase } from "../auth/case-access";
 
@@ -69,6 +70,8 @@ export interface ApplicationProcessingStatusDTO {
 }
 
 export class DocumentProcessingService {
+  private static activeLocks = new Set<string>();
+
   constructor(
     private storage: IStorageAdapter = defaultStorage,
     private ocrProvider: IOCRProvider = new TesseractOCRProvider()
@@ -109,13 +112,35 @@ export class DocumentProcessingService {
    * Executes the full document intelligence pipeline for a claimed job.
    */
   async processJob(jobId: string): Promise<DocumentProcessingJob> {
+    if (DocumentProcessingService.activeLocks.has(jobId)) {
+      const existingJob = await documentProcessingJobRepository.findById(jobId);
+      return existingJob || ({} as DocumentProcessingJob);
+    }
+
     const job = await documentProcessingJobRepository.findById(jobId);
     if (!job || !job.document) {
       throw new Error(`Document processing job ${jobId} not found`);
     }
 
+    if (DocumentProcessingService.activeLocks.has(job.documentId)) {
+      return job;
+    }
+
+    DocumentProcessingService.activeLocks.add(jobId);
+    DocumentProcessingService.activeLocks.add(job.documentId);
+
     const doc = job.document;
     const caseDossierId = doc.caseDossierId;
+    const startTime = Date.now();
+
+    // Mark job and document as actively PROCESSING
+    await documentProcessingJobRepository.updateJob(job.id, {
+      status: ProcessingStatus.PROCESSING,
+      startedAt: new Date(startTime),
+    });
+    await documentRepository.updateProcessingResult(doc.id, {
+      processingStatus: ProcessingStatus.PROCESSING,
+    });
 
     await auditRepository.create({
       caseDossierId,
@@ -223,7 +248,13 @@ export class DocumentProcessingService {
         extractedFields,
       });
 
-      // Step 7: Persist Extracted Fields with Provenance
+      // Step 7: Check if document was deleted while OCR was running
+      const stillExists = await documentRepository.findById(doc.id);
+      if (!stillExists) {
+        return job;
+      }
+
+      // Persist Extracted Fields with Provenance
       if (extractedFields.length > 0) {
         await documentRepository.saveExtractedFieldsBatch(
           doc.id,
@@ -245,12 +276,25 @@ export class DocumentProcessingService {
         );
       }
 
-      // Step 8: Update Document and Job status
+      // Step 8: Update Document metadata while keeping status PROCESSING
       await documentRepository.updateProcessingResult(doc.id, {
         classifiedAs: classification.classifiedType,
         classificationConfidence: classification.confidenceScore,
-        processingStatus: evaluation.status,
+        processingStatus: ProcessingStatus.PROCESSING,
         pageCount: ocrResult.pages.length,
+      });
+
+      // Step 9: Demo Hold / Reveal Delay (~35s default or from DEMO_OCR_DELAY_MS)
+      const demoDelayMs = getDemoOcrDelayMs();
+      const elapsed = Date.now() - startTime;
+      const remainingDelay = Math.max(0, demoDelayMs - elapsed);
+      if (remainingDelay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remainingDelay));
+      }
+
+      // Step 10: Final Status Update (Transitions to COMPLETED or REVIEW_REQUIRED)
+      await documentRepository.updateProcessingResult(doc.id, {
+        processingStatus: evaluation.status,
       });
 
       const updatedJob = await documentProcessingJobRepository.updateJob(job.id, {
@@ -318,6 +362,11 @@ export class DocumentProcessingService {
         });
 
         return updated;
+      }
+    } finally {
+      DocumentProcessingService.activeLocks.delete(jobId);
+      if (job?.documentId) {
+        DocumentProcessingService.activeLocks.delete(job.documentId);
       }
     }
   }
@@ -389,6 +438,11 @@ export class DocumentProcessingService {
     const job = await documentProcessingJobRepository.createOrResetJob(documentId);
     await documentRepository.updateProcessingResult(documentId, {
       processingStatus: ProcessingStatus.PENDING,
+    });
+
+    // Trigger async processing with demo delay
+    this.processJob(job.id).catch((err) => {
+      console.error(`[DocumentProcessing] Reprocess async job ${job.id} error:`, err);
     });
 
     await auditRepository.create({

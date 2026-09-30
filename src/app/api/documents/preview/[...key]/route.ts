@@ -2,15 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthUser } from "@/server/auth/session";
 import { applicationService } from "@/server/services/application.service";
 
-export async function GET(_req: NextRequest, { params }: { params: { key: string[] } }) {
+export async function GET(req: NextRequest, { params }: { params: { key: string[] } }) {
   try {
     const user = await getServerAuthUser();
     if (!user) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    const format = req.nextUrl.searchParams.get("format") || undefined;
     const storagePath = params.key.join("/");
-    const { buffer, mimeType } = await applicationService.getPreviewBuffer(storagePath, user);
+    const { buffer, mimeType } = await applicationService.getPreviewBuffer(storagePath, user, {
+      format,
+    });
 
     const headers = new Headers();
     headers.set("Content-Type", mimeType);

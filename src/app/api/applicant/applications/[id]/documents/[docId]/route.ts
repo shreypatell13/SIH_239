@@ -5,7 +5,7 @@ import { apiError, apiSuccess } from "@/server/api-response";
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string; docId: string } }
+  context: { params: Promise<{ id: string; docId: string }> | { id: string; docId: string } }
 ) {
   try {
     const user = await getServerAuthUser();
@@ -13,12 +13,17 @@ export async function DELETE(
       return apiError("Unauthorized: Please log in as an applicant.", "UNAUTHORIZED", 401);
     }
 
-    const success = await applicationService.deleteDocument(params.id, params.docId, user);
+    const { id, docId } = await Promise.resolve(context.params);
+    if (!id || !docId) {
+      return apiError("Missing application ID or document ID.", "BAD_REQUEST", 400);
+    }
+
+    const success = await applicationService.deleteDocument(id, docId, user);
     if (!success) {
       return apiError("Document not found or could not be removed.", "NOT_FOUND", 404);
     }
 
-    return apiSuccess({ deleted: true, documentId: params.docId });
+    return apiSuccess({ deleted: true, documentId: docId });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Failed to delete document";
     const status = msg.includes("Forbidden") ? 403 : msg.includes("Only DRAFT") ? 409 : 400;

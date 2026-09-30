@@ -248,7 +248,7 @@ model Application {
   updatedAt          DateTime          @updatedAt
   caseDossier        CaseDossier?
 
-  @@unique([applicantProfileId, schemeVersionId]) // One submission per profile per version
+  @@index([applicantProfileId, schemeVersionId])
   @@map("applications")
 }
 

@@ -98,11 +98,16 @@ export function EvidenceProvenanceCard({ field, onClear }: EvidenceProvenanceCar
         </span>
         <span>
           Provider:{" "}
-          <strong className="text-slate-700">{field.extractorProvider || "tesseract-js"}</strong>
+          <strong className="text-slate-700">{field.extractorProvider || "tesseract-ocr"}</strong>
         </span>
         <span>
           Extracted By: <strong className="text-slate-700">{field.extractedBy}</strong>
         </span>
+        {field.boundingBox && (
+          <span className="font-mono text-[9px] text-slate-400">
+            BBox: [{field.boundingBox.x.toFixed(3)}, {field.boundingBox.y.toFixed(3)}, {field.boundingBox.width.toFixed(3)}, {field.boundingBox.height.toFixed(3)}]
+          </span>
+        )}
       </div>
     </div>
   );
